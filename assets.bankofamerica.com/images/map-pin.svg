@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 23.3 29.2" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#F7F4F0;}
+	.st1{fill:#fff;}
+	.st2{fill:#DE163C;}
+	.st3{fill:#DE163C;}
+</style>
+<path class="st2" d="M11.6,3.8c-2.4,0-4.3,1.9-4.3,4.3c0,2.4,1.9,4.3,4.3,4.3c2.4,0,4.3-1.9,4.3-4.3C15.9,5.7,14,3.8,11.6,3.8
+	 M14.3,22.6c-0.9-0.1-1.7-0.1-2.6-0.1c-0.8,0-1.6,0-2.4,0.1C6.6,18.5,2.6,11.9,2.6,9.1c0-5,4.1-9.1,9.1-9.1c5,0,9.1,4.1,9.1,9.1
+	C20.7,12.8,17,18.8,14.3,22.6"/>
+<path class="st3" d="M11.7,26.1c0,0-1-1.5-2.4-3.5c0.8,0,1.6-0.1,2.4-0.1c0.9,0,1.8,0,2.6,0.1C12.8,24.7,11.7,26.1,11.7,26.1"/>
+</svg>

@@ -1,0 +1,2425 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Events = {
+    'SEARCH_SUBMIT': 'SEARCH_SUBMIT',
+    'SEARCH_PAN_ZOOM_SUBMIT': 'SEARCH_PAN_ZOOM_SUBMIT',
+    'SEARCH_INVALID': 'SEARCH_INVALID',
+    'SEARCH_SUCCESS': 'SEARCH_SUCCESS',
+    'SEARCH_NEARBY': 'SEARCH_NEARBY',
+    'SEARCH_FAIL': 'SEARCH_FAIL',
+    'SEARCH_NO_RESULTS': 'SEARCH_NO_RESULTS',
+    'ASYNC_RESULTS': 'ASYNC_RESULTS',
+    'MAP_PINS_READY': 'MAP_PINS_READY',
+    'CREATE_MAP': 'CREATE_MAP',
+    'OPEN_POPUP': 'OPEN_POPUP',
+    'MAP_CENTERED': 'MAP_CENTERED',
+    'MAP_CREATED': 'MAP_CREATED',
+    'MAP_LIST_READY': 'MAP_LIST_READY',
+    'MAP_FILTERS_READY': 'MAP_FILTERS_READY',
+    'MAP_LIST_HOURS_READY': 'MAP_LIST_HOURS_READY',
+    'LIVE_DATA_READY': 'LIVE_DATA_READY',
+    'MAP_TASKS_COMPLETE': 'MAP_TASKS_COMPLETE',
+    'RESET_DEFAULT_DATA': 'RESET_DEFAULT_DATA',
+    'PAN_SEARCH_SUBMIT': 'PAN_SEARCH_SUBMIT',
+    'MOBILE_MAP_INITIALIZE': 'MOBILE_MAP_INITIALIZE',
+    'APPLY_FILTERS': 'APPLY_FILTERS',
+    'NUMBER_MAP_PINS': 'NUMBER_MAP_PINS'
+};
+
+/* Variables defined in config.php, copied here for text editor assistance and scoping */
+var pageLevel$1 = $config.pageLevel;
+var domainName$1 = $config.domainName;
+$config.fullDomainName;
+$config.assetsUrl;
+$config.mapsUrl;
+$config.defaultRadius;
+$config.protocol;
+var urlCountryCode$1 = $config.urlCountryCode;
+$config.language;
+$config.dictionary;
+$config.pageHasMap;
+$config.specialties;
+var tileMode = $config.tileMode;
+var isMobileApp = $config.isMobileApp;
+$config.searchPageUrl;
+$config.defaultListHtml;
+$config.defaultListData;
+$config.redirectOnSearch;
+var specialtyPageMode = $config.specialtyPageMode;
+$config.navicoreMode;
+JSON.parse($config.regionData);
+$config.enableLeafletPopups;
+$config.autoSearch;
+$config.userLocationPin;
+var searchInputId = '#q';
+
+if (urlCountryCode$1 == 'es-us' && sbBankerMode) {
+    domainName$1.replace('es-locators.', '');
+}
+var TileMode = {
+    GOOGLE: "GOOGLE",
+    BING: 'BING',
+    BAIDU: 'BAIDU',
+    HERE: 'HERE',
+    DEFAULT: 'DEFAULT'
+};
+
+function init$3() {
+    if (pageLevel != 'indy' && tileMode == TileMode.GOOGLE) {
+        initLegacy('#q');
+        initFavoriteLegacy('#qq');
+    } else if (tileMode == TileMode.HERE) {
+        initHere();
+    }
+}
+function initHere() {
+    var docEl = document.getElementById(searchInputId.replace('#', ''));
+    if (docEl === null) {
+        return;
+    }
+    var baseUrl = 'http://autocomplete.geocoder.api.here.com/6.2/suggest.json';
+    var query = $(docEl).val();
+    query = 'san d';
+    console.log('query: ' + query);
+    var url = baseUrl + '?app_id=' + HERE_APP_ID + '&app_code=' + HERE_APP_CODE + '&query=' + query + '&beginHighlight=<b>&endHighlight=</b>';
+    $.ajax({
+        url: url
+    }).done(function (data) {
+        console.log(data);
+    });
+}
+function initLegacy(targetElement) {
+    $.ajax({
+        url: location.protocol + '//' + fullDomainName + '/api/getAutocompleteData',
+        dataType: "json",
+        method: "GET",
+        xhrFields: {
+            withCredentials: true
+        },
+        success: function success(results) {
+            results.data;
+            $(targetElement).autocomplete({
+                source: function source(request, response) {
+                    var max = 10,
+                        list = $.ui.autocomplete.filter(results.data, request.term);
+                    if (typeof $(targetElement).attr('data-max') != 'undefined') {
+                        max = $(targetElement).data('max');
+                    }
+                    response(list.slice(0, max));
+                },
+                minLength: 2,
+                select: function select(event, ui) {
+                    $(targetElement).val(ui.item.value);
+                    $(this).closest('form').submit();
+                }
+            });
+        },
+        error: function error(result) {}
+    });
+}
+function initFavoriteLegacy(targetElement) {
+    $.ajax({
+        url: location.protocol + '//' + fullDomainName + '/api/getAutocompleteData',
+        dataType: "json",
+        method: "GET",
+        xhrFields: {
+            withCredentials: true
+        },
+        success: function success(results) {
+            results.data;
+            $(targetElement).autocomplete({
+                source: function source(request, response) {
+                    var max = 10,
+                        list = $.ui.autocomplete.filter(results.data, request.term);
+                    if (typeof $(targetElement).attr('data-max') != 'undefined') {
+                        max = $(targetElement).data('max');
+                    }
+                    response(list.slice(0, max));
+                },
+                minLength: 2,
+                select: function select(event, ui) {
+                    $(targetElement).val(ui.item.value);
+                    $(this).closest('form').submit();
+                }
+            });
+        },
+        error: function error(result) {}
+    });
+}
+
+var initialized = false;
+
+function init$2() {
+    if (!initialized) {
+        if (pageLevel == 'city') {
+            addMapNumbers();
+            $(document).one(Events.MAP_PINS_READY, function () {
+                numberMapPins();
+            });
+        }
+        $(document).on(Events.NUMBER_MAP_PINS, function () {
+            numberMapPins();
+        });
+        $(document).on(Events.MAP_LIST_READY, function () {
+            addMapNumbers();
+            $(document).one(Events.MAP_PINS_READY, function () {
+                numberMapPins();
+            });
+        });
+    }
+    initialized = true;
+}
+
+function addMapNumbers() {
+    var index = 1;
+    $('.map-list .map-list-item-wrap:not(.is-single)').each(function () {
+        addIndex($(this), index);
+        index++;
+    });
+    numberMapPins();
+}
+
+function addIndex($el, index) {
+    if ($el.find('span.index').length === 0) {
+        $el.append('<span class="index"></span>');
+    }
+    $el.attr('data-index', index).find('span.index').html(index);
+}
+
+function numberMapPins() {
+    $('.cmOverlay').each(function () {
+        var lid = $(this).data('lid');
+        var $listItem = $('.locator #lid' + lid);
+        var index = $listItem.data('index');
+        addIndex($(this), index);
+    });
+}
+
+function init$1() {
+    $(document).on('click', '#modal-print-button', function () {
+        $.modal.close();
+        $('.print-content').hide().find('.map-list').remove();
+        $('.print-content').find('.map-content').remove();
+
+        // wait for modal fade out
+        setTimeout(function () {
+            window.print();
+        }, 100);
+    });
+
+    // close modal
+    $('.close-modal-on-click').on('click', function () {
+        $('body').css('overflow', 'auto');
+        $.modal.close();
+    });
+
+    $('#boaSocialModal_link_Cancel, #boaSocialModal_linkSpartaUILayerClose').on('click', function () {
+        $('body').css('overflow', 'auto');
+        $('#boaSocialModal_linkSpartaUILayer').hide();
+        focusedElementBeforeModal.focus();
+    });
+    $('#boaSocialModal_link_Cancel').on('keydown', function (e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == 9) {
+            if (!e.shiftKey) {
+                $('body').css('overflow', 'auto');
+                $('#boaSocialModal_linkSpartaUILayerClose').focus();
+                e.preventDefault();
+            }
+        }
+    });
+    $('#boaSocialModal_linkSpartaUILayerClose').on('keydown', function (e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == 9) {
+            if (e.shiftKey) {
+                $('body').css('overflow', 'auto');
+                $('#boaSocialModal_link_Cancel').focus();
+                e.preventDefault();
+            }
+        }
+    });
+
+    $('.boa-social--network').on('click', function () {
+
+        var data = JSON.parse($('.boa-social-target').attr('data-config'));
+        var socialNetwork = $(this).attr('data-network');
+
+        $('#boaSocialModal_linkSpartaUILayer').show();
+        $('#boaSocialModal_linkSpartaUILayer .boa-social--header').html(data['networks'][socialNetwork]['content']['connectHeading']);
+        $('.boa-social--interstitial ').html(data['content']['interstitial1'] + data['networks'][socialNetwork]['name'] + data['content']['interstitial2']);
+        $('body').css('overflow', 'hidden');
+
+        focusedElementBeforeModal = $(':focus');
+        $('#boaSocialModal_linkSpartaUILayerClose').focus();
+
+        if (socialNetwork == 'X') {
+            $('#boaSocialModal_link_Continue').attr('href', data['networks'][socialNetwork]['links']['@BankofAmerica']['link']).html(data['content']['continue'] + data['networks'][socialNetwork]['name']).removeClass('external');
+        } else {
+            $('#boaSocialModal_link_Continue').attr('href', data['networks'][socialNetwork]['links'][socialNetwork]['link']).html(data['content']['continue'] + data['networks'][socialNetwork]['name']).removeClass('external');
+        }
+    });
+
+    $(document).on($.modal.CLOSE, function () {
+
+        // show feedback bar
+        $('#oo_bar').show();
+
+        // remove print preview content from dom
+        $('.print-content').hide().find('.map-list').remove();
+        $('.print-content').find('.map-content').remove();
+
+        // update aria status
+        $('#modal-wrap').attr('aria-expanded', 'false').attr('aria-hidden', 'true');
+        $('#modal-wrap-translation').attr('aria-expanded', 'false').attr('aria-hidden', 'true');
+
+        // resume scrolling
+        $('body').css('overflow', 'auto');
+
+        $(document).off('keydown');
+
+        focusedElementBeforeModal.focus();
+    });
+
+    $(document).on($.modal.OPEN, function () {
+
+        // show feedback bar
+        $('#oo_bar').hide();
+
+        // update aria status
+        $('#modal-wrap').attr('aria-expanded', 'true').attr('aria-hidden', 'false');
+        $('#modal-wrap-translation').attr('aria-expanded', 'true').attr('aria-hidden', 'false');
+
+        var firstTime = true;
+
+        // handle tab keys events
+        $(document).on('keydown', function (event) {
+
+            // force tab to modal window
+            if (event.keyCode == 9 && firstTime) {
+                firstTime = false;
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            // prevent tabbing outside modal
+            trapTabKey$1($('.modal'), event);
+        });
+
+        $('.modal').find('.close-button').focus();
+
+        // prevent main page scrolling
+        $('body').css('overflow', 'hidden');
+    });
+}
+function trapTabKey$1(obj, evt) {
+    var focusableElementsString = "a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]";
+
+    // if tab or shift-tab pressed
+    if (evt.which == 9) {
+
+        // get list of all children elements in given object
+        var o = obj.find('*');
+
+        // get list of focusable items
+        var focusableItems;
+        focusableItems = o.filter(focusableElementsString).filter(':visible');
+
+        // get currently focused item
+        var focusedItem;
+        focusedItem = jQuery(':focus');
+
+        // get the number of focusable items
+        var numberOfFocusableItems;
+        numberOfFocusableItems = focusableItems.length;
+
+        // get the index of the currently focused item
+        var focusedItemIndex;
+        focusedItemIndex = focusableItems.index(focusedItem);
+
+        if (evt.shiftKey) {
+            //back tab
+            // if focused on first item and user preses back-tab, go to the last focusable item
+            if (focusedItemIndex == 0) {
+                focusableItems.get(numberOfFocusableItems - 1).focus();
+                evt.preventDefault();
+            }
+        } else {
+            //forward tab
+            // if focused on the last item and user preses tab, go to the first focusable item
+            if (focusedItemIndex == numberOfFocusableItems - 1) {
+                focusableItems.get(0).focus();
+                evt.preventDefault();
+            }
+        }
+    }
+}
+
+function initExternalLink() {
+    $('a').filter(function () {
+        if (this.hostname && this.hostname !== location.hostname) {
+            if ($.inArray(this.hostname, safeHosts) > -1) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }).addClass("external");
+
+    // Handle popup-link clicks
+    $(document).off('click', '.popup-link').on('click', '.popup-link', function (event) {
+        event.preventDefault();
+        var link = $(this);
+        var url = link.attr('href');
+
+        if (urlCountryCode == 'en-us') {
+            if (link.hasClass('external')) {
+                openInterstitialModal(url, link);
+            } else {
+                openPopupWindowDirect(link);
+            }
+        } else {
+            if (link.hasClass('js-language-interstitial')) {
+                openTranslationlModal(url, link);
+            } else if (link.hasClass('external')) {
+                openInterstitialModal(url, link);
+            } else {
+                openPopupWindowDirect(link);
+            }
+        }
+    });
+
+    $(document).on('click', '.external:not(.popup-link)', function (event) {
+        event.preventDefault();
+        var url = event.target.href;
+        openInterstitialModal(url);
+    });
+}
+
+function initTranslationModal() {
+    $('#modal-wrap-translation').removeClass('header-language-modal');
+    if (urlCountryCode == 'es-us') {
+        $('.js-language-interstitial:not(.popup-link)').off('click').on('click', function (ev) {
+            //if the click is in the header, add class header-language-modal to #modal-wrap-translation
+            if ($(this).closest('.gt-nav-unauth-bofa-wrapper').length) {
+                $('#modal-wrap-translation').addClass('header-language-modal');
+            } else {
+                $('#modal-wrap-translation').removeClass('header-language-modal');
+            }
+            ev.preventDefault();
+            var url = $(this).attr('href');
+            openTranslationlModal(url);
+        });
+        $(document).on('click', '.js-language-interstitial:not(.popup-link)', function (ev) {
+            //if the click is in the header, add class header-language-modal to #modal-wrap-translation
+            if ($(this).closest('.gt-nav-unauth-bofa-wrapper').length) {
+                $('#modal-wrap-translation').addClass('header-language-modal');
+            } else {
+                $('#modal-wrap-translation').removeClass('header-language-modal');
+            }
+            ev.preventDefault();
+            var url = $(this).attr('href');
+            openTranslationlModal(url);
+        });
+    }
+}
+
+function openInterstitialModal(externalUrl) {
+    var originalLink = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+    $('#modal-wrap').modal({
+        fadeDuration: 50,
+        showClose: false
+    }).attr('aria-expanded', 'true').attr('aria-hidden', 'false').find('#externalUrl').attr('href', externalUrl);
+
+    // If this was triggered by a popup-link, set up the popup handler
+    if (originalLink && originalLink.hasClass('popup-link')) {
+        setupPopupHandler(originalLink);
+    }
+
+    focusedElementBeforeModal = $(':focus');
+
+    $('.close').focus();
+}
+function openTranslationlModal(externalUrl) {
+    var originalLink = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+    if (externalUrl.indexOf('language-not-available') > -1) {
+        externalUrl = externalUrl.split('target=')[1];
+    }
+
+    $('#modal-wrap-translation').modal({
+        fadeDuration: 50,
+        showClose: false
+    }).attr('aria-expanded', 'true').attr('aria-hidden', 'false').find('#externalUrl').attr('href', externalUrl);
+
+    // If this was triggered by a popup-link, set up the popup handler
+    if (originalLink && originalLink.hasClass('popup-link')) {
+        setupPopupHandler(originalLink);
+    }
+
+    focusedElementBeforeModal = $(':focus');
+
+    $('.close').focus();
+}
+
+function openPopupWindowDirect(link) {
+    var url = link.attr('href');
+    var options = JSON.parse(link.attr('data-options'));
+    var popupOptions = options.popupOptions;
+    var windowFeatures = Object.entries(popupOptions).map(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            key = _ref2[0],
+            value = _ref2[1];
+
+        return key + '=' + value;
+    }).join(',');
+    window.open(url, popupOptions.windowName, windowFeatures);
+}
+
+function setupPopupHandler(originalLink) {
+    window.pendingPopupLink = originalLink;
+
+    $(document).off('click.popup-handler', '#externalUrl');
+
+    $(document).on('click.popup-handler', '#externalUrl', function (event) {
+        // Only handle this if we have a pending popup link
+        if (window.pendingPopupLink) {
+            event.preventDefault();
+            var clickedUrl = $(this).attr('href');
+
+            // Use the original link's popup configuration
+            var options = JSON.parse(window.pendingPopupLink.attr('data-options'));
+            var popupOptions = options.popupOptions;
+            var windowFeatures = Object.entries(popupOptions).map(function (_ref3) {
+                var _ref4 = _slicedToArray(_ref3, 2),
+                    key = _ref4[0],
+                    value = _ref4[1];
+
+                return key + '=' + value;
+            }).join(',');
+
+            window.open(clickedUrl, popupOptions.windowName, windowFeatures);
+            $.modal.close();
+
+            // Clean up
+            window.pendingPopupLink = null;
+            $(document).off('click.popup-handler', '#externalUrl');
+        }
+    });
+}
+
+function init() {
+
+    var el = 'a.more';
+
+    $(document).off('click', el).on('click', el, function (event) {
+        event.preventDefault();
+
+        $(document).off('focusin');
+        var content = $(this).parent().find('.info-box-content').html();
+        showInfoBox($(this).offset(), $(this).width(), content);
+        // $('.map-list-wrap').css('overflow', 'hidden'); //prevent scrolling
+    });
+}
+function showInfoBox(offset, width, content) {
+    focusedElementBeforeModal = $(':focus');
+
+    var el = 'a.more';
+
+    var nameContent = content.replace(/ |-/g, '_');
+
+    if (typeof $.parseHTML(content)[0].innerHTML != 'undefined') {
+        nameContent = $.parseHTML(content)[0].innerHTML;
+    }
+
+    var infoBoxHtml = '<div class="bofa-info-box">';
+    infoBoxHtml += '<a href="#" name="Filter_Info_Box_' + nameContent + '_Close" id="bofa-info-boxClose" class="closeButton">' + dictionary['CLOSE'][urlCountryCode] + '<img src="https://assets.' + domainName + '/images/xbox.jpg" alt=""/><span class="adaHidden"> Close info box</span></a>';
+    infoBoxHtml += '<div class="infoBoxContentWrap">' + content + '</div>';
+    infoBoxHtml += '</div>';
+
+    $(document).off('click', el);
+
+    $('body').prepend(infoBoxHtml);
+
+    if (pageLevel == 'indy') {
+        $('.bofa-info-box').css('top', offset.top - 51).css('left', offset.left + width + 23).addClass("show");
+    } else {
+        $('.bofa-info-box').css('top', offset.top - 51).css('left', offset.left - $('.bofa-info-box').width() - width - 46).addClass('show');
+    }
+
+    $('.info-box-content').attr('aria-expanded', 'true').attr('aria-hidden', 'false');
+
+    $('#bofa-info-boxClose').focus();
+
+    // esc key to close
+    $(document).off('keyup.closeInfoBox').on('keyup.closeInfoBox', function (e) {
+        if (e.keyCode == 27) {
+            closeInfoBox();
+        }
+    });
+
+    // infobox close button
+    $('#bofa-info-boxClose').off('click').on('click', function (event) {
+        event.preventDefault();
+        closeInfoBox();
+    });
+
+    $(document).mouseup(function (event) {
+        if (!$('.bofa-info-box').is(event.target) && $('.bofa-info-box').has(event.target).length === 0 && $('.bofa-info-box').hasClass('show')) {
+            closeInfoBox();
+        }
+    });
+
+    $('#bofa-info-boxClose').off('keypress').keypress(function (e) {
+        if (e.which == 13) {
+            event.preventDefault();
+            closeInfoBox();
+        }
+    });
+
+    var firstTime = true;
+    // handle tab keys events
+    $(document).on('keydown.closeInfoBox', function (event) {
+
+        // force tab to modal window
+        if (event.keyCode == 9 && firstTime) {
+
+            // set modal focus
+            //setInitialFocusModal($('.modal'));
+
+            firstTime = false;
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        // prevent tabbing outside modal
+        trapTabKey($('.bofa-info-box'), event);
+    });
+    //initBlurToClose();
+    //
+    $(".infobox-content-wrap p a").removeClass('external');
+}
+
+function closeInfoBox() {
+    $(document).off('focusin');
+    $(document).off('keydown.closeInfoBox');
+
+    $('.bofa-info-box').remove();
+
+    $(document).off('keyup.closeInfoBox');
+
+    init();
+
+    $('.info-box-content').attr('aria-expanded', 'false').attr('aria-hidden', 'true');
+
+    if (focusedElementBeforeModal) {
+        focusedElementBeforeModal.focus();
+    }
+
+    // don't let maplist scroll if info pane is open
+    //$('.map-list-wrap').css('overflow-y', 'scroll'); //resume scrolling 
+}
+
+function initRotation() {
+
+    var marketingModalArray = [];
+
+    for (var i = 1; i <= jQuery('.js-marketing-well-block').length; i++) {
+        if (typeof jQuery('.marketing-well-block-0' + i) != 'undefined' && jQuery('.marketing-well-block-0' + i).length > 0) {
+            marketingModalArray.push(jQuery('.marketing-well-block-0' + i));
+        }
+    }
+
+    var random = getRandomInt(marketingModalArray.length) + 1;
+
+    console.log(random);
+
+    jQuery('.marketing-well-block-0' + random).removeClass('marketing-well-hidden');
+
+    trackMarketingWellLoad('0' + random);
+}
+
+function showMainVideo() {
+    var marketingModalArray = [];
+    for (var i = 1; i < 3; i++) {
+        if (typeof jQuery('.marketing-well-block-main-0' + i) != 'undefined' && jQuery('.marketing-well-block-main-0' + i).length > 0) {
+            marketingModalArray.push(jQuery('.marketing-well-block-main-0' + i));
+        }
+    }
+    var random = getRandomInt(marketingModalArray.length) + 1;
+
+    jQuery('.marketing-well-block-main-0' + random).removeClass('marketing-well-hidden');
+    trackMarketingWellLoad('main-0' + random);
+}
+
+function initVideoPlayBack() {
+    jQuery('.iframe-wrap .overlay').on('click', function (ev) {
+        ev.preventDefault();
+        var player = $(this).attr('data-player');
+        var videoSrc = $('iframe#' + player).attr('data-src');
+        $('iframe#' + player).attr('src', videoSrc);
+        jQuery('.overlay').remove();
+    });
+    jQuery('.video-transcript-trigger').on('click', function () {
+        if ($(this).attr('aria-expanded') == "true") {
+            $(this).attr('aria-expanded', false);
+        } else {
+            $(this).attr('aria-expanded', true);
+        }
+
+        $(this).toggleClass('active');
+    });
+}
+
+function trackMarketingWellLoad(marketingWellNumber) {
+
+    var gaLoaded = false;
+
+    if (typeof ga != 'undefined') {
+        var marketingWellTitle = jQuery('.marketing-well-block-' + marketingWellNumber).attr('data-title');
+        //Track which ad is showing
+        for (var i = 0; i < ga.getAll().length; i++) {
+            var trackerName = ga.getAll()[i].get('name');
+            ga(trackerName + '.send', 'event', "Marketing Well", 'Loaded', marketingWellTitle);
+            console.log("Tracking: Marketing Well - " + marketingWellTitle);
+        }
+        gaLoaded = true;
+    }
+
+    //Google Analytics 4 tracking
+    if (typeof gtag != 'undefined') {
+        var marketingWellTitle = jQuery('.marketing-well-block-' + marketingWellNumber).attr('data-title');
+        gtag("event", "CustomTrackingEvents", {
+            tracking_category: "Marketing Well Load",
+            tracking_label: marketingWellTitle
+        });
+        gaLoaded = true;
+    }
+
+    if (!gaLoaded) {
+        setTimeout(function () {
+            trackMarketingWellLoad(marketingWellNumber);
+        }, 500);
+    }
+}
+
+function getRandomInt(max) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
+var cookieDomain = '.bankofamerica.com';
+
+if (typeof fullDomainName != 'undefined' && fullDomainName.indexOf('qa.rioseo.com') > -1) {
+    var cookieDomain = '.bankofamericaqa.rioseo.com';
+}
+
+function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    var days = exdays || 365;
+    d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+    var expires = "expires=" + d.toUTCString();
+    var cookieValue = cname + "=" + cvalue + ";" + expires + ";path=/";
+    document.cookie = cookieValue;
+}
+
+function setCustomCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    var days = exdays || 365;
+    d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+    var expires = "expires=" + d.toUTCString();
+    var cookieValue = cname + "=" + cvalue + ";" + expires + ";domain=" + cookieDomain + ";path=/";
+    document.cookie = cookieValue;
+}
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
+function deleteCustomCookie(name) {
+    var expires = "expires=Thu, 01 Jan 1970 00:00:00 UTC";
+    var cvalue = '';
+    var cookieValue = name + "=" + cvalue + ";" + expires + ";domain=" + cookieDomain + ";path=/";
+    document.cookie = cookieValue;
+}
+function getQueryParams(name) {
+    var qs = document.location.search;
+    qs = qs.split('+').join(' ');
+
+    var params = {},
+        tokens,
+        re = /[?&]?([^=]+)=([^&]*)/g;
+
+    while (tokens = re.exec(qs)) {
+        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+    }
+
+    if (typeof params[name] != 'undefined') {
+        return params[name];
+    } else {
+        return false;
+    }
+}
+
+var initMarketingWellRotation = true;
+
+if (did === '1323') {
+    // Spanish
+    if (tls_mode === 'dev') {
+        var liveDataUrl = 'https://maps.bankofamerica.com.preprod.rioseo.com/api/getLiveData';
+    } else if (tls_mode === 'qa') {
+        var liveDataUrl = 'https://maps.bankofamerica.com.preprod.rioseo.com/api/getLiveData';
+    } else {
+        var liveDataUrl = 'https://maps.bankofamerica.com/api/getLiveData';
+    }
+} else {
+    // English
+    if (tls_mode === 'dev') {
+        var liveDataUrl = 'https://maps.bankofamerica.com.preprod.rioseo.com/api/getLiveData';
+    } else if (tls_mode === 'qa') {
+        var liveDataUrl = 'https://maps.bankofamerica.com.preprod.rioseo.com/api/getLiveData';
+    } else {
+        var liveDataUrl = 'https://maps.bankofamerica.com/api/getLiveData';
+    }
+}
+
+var msgNameBranchEmergency, msgNameAtmEmergency, msgNameCustom, msgNameAtmStatus;
+var favoriteId = getCookie("favoriteStoreId");
+var favoriteStoreMessage = '';
+var favoriteStoreMessageAppended = false;
+
+function initGlobalAlert() {
+    var globalMsgData = '';
+    globalMsgData += $('#globalMsgData').html();
+    globalMsgData = globalMsgData.substr(globalMsgData.indexOf("<"), globalMsgData.lastIndexOf(">") + 1); // removes extra characters. http://stackoverflow.com/questions/9315230/why-is-jquerys-parsexml-function-failing-when-the-xml-looks-ok
+    globalMsgData = $.parseXML(globalMsgData);
+
+    $(globalMsgData).find('alert').each(function (index, alert) {
+        var startMonth = $(alert).find('start').find('month').text(),
+            startMonth = ('0' + startMonth).slice(-2),
+            // add leading zero
+        startDay = $(alert).find('start').find('day').text(),
+            startDay = ('0' + startDay).slice(-2),
+            // add leading zero
+        startYear = $(alert).find('start').find('year').text(),
+            endMonth = $(alert).find('end').find('month').text(),
+            endMonth = ('0' + endMonth).slice(-2),
+            // add leading zero
+        endDay = $(alert).find('end').find('day').text(),
+            endDay = ('0' + endDay).slice(-2),
+            // add leading zero
+        endYear = $(alert).find('end').find('year').text(),
+            message = $(alert).find('message').text(),
+            id = $(alert).attr('id'),
+            now = Date.now(),
+            start = Date.parse(startYear + '-' + startMonth + '-' + startDay),
+            end = Date.parse(endYear + '-' + endMonth + '-' + endDay);
+
+        if (now >= start && now <= end && !sessionStorage.getItem(id)) {
+            if (pageLevel == 'indy') {
+                $('.global-alerts').addClass('is-block').find('.location-alert-content').text(message);
+            } else {
+                //Append the non truncated message to the first item and truncate all other items. 
+                $('.global-alerts.non-truncated').addClass('is-block').find('.location-alert-content').html(message);
+                message = truncateAlertMessages(message);
+                $('.global-alerts.truncate').addClass('is-block').find('.location-alert-content').html(message);
+            }
+        }
+    });
+
+    $(document).on('favoriteStoreReady', function (ev) {
+        if (typeof favoriteId != 'undefined' && favoriteId != '' && favoriteStoreMessage != '') {
+            updateFavoriteStore(favoriteId, favoriteStoreMessage);
+        }
+    });
+    $(document).on('getFavoriteStoreAlert', function (ev) {
+        favoriteId = getCookie("favoriteStoreId");
+        favoriteStoreMessage = '';
+        favoriteStoreMessageAppended = false;
+        getFavoriteStoreAlerts(favoriteId);
+    });
+}
+
+function getFavoriteStoreAlerts(favoriteStoreId) {
+    var fids = [favoriteStoreId];
+
+    var param = JSON.stringify({ 'fids': fids });
+
+    $.post(liveDataUrl, param).done(function (data) {
+        if (data.length > 0) {
+            for (var i = 0; i < fids.length; i++) {
+                for (var i = 0; i < data.length; i++) {
+                    if ($.inArray(fids[i].toString(), data[i].fids) > -1) {
+                        favoriteStoreMessage = data[i];
+                    }
+                }
+                updateFavoriteStore(favoriteStoreId, favoriteStoreMessage);
+            }
+        }
+    });
+}
+
+function truncateRestrictedMessage() {
+
+    var adaDescription = 'about restricted access to ' + data.address_1;
+
+    $('.restricted-message .location-alert-content').each(function () {
+        var message = $(this).html();
+        if (message != '') {
+            if (message.indexOf('.') !== -1) {
+                var firstSentence = message.split('.')[0];
+                var secondSentence = message.split('.')[1];
+
+                // only show if there is more than one sentence
+                if (secondSentence != '' && secondSentence != ' ' && secondSentence !== null) {
+                    init();
+                    $(this).html(firstSentence + '. <a class="more" href="#">' + dictionary['READMORE'][urlCountryCode] + ' <span class="adaHidden">' + adaDescription + '</span></a><span class="info-box-content"><h2 id="info-box-heading" tabindex="0">' + dictionary['IMPORTANTNOTICE'][urlCountryCode] + '</h2><p tabindex="0">' + message + '</p></span>');
+                } else {
+                    $(this).html(message);
+                }
+            } else {
+                $(this).html(message);
+            }
+        }
+    });
+}
+
+function truncateAlertMessages(message) {
+    var adaDescription = 'read more about this alert';
+    if (message != '') {
+        if (message.indexOf('.') !== -1) {
+            var firstSentence = message.split('.')[0];
+            var secondSentence = message.split('.')[1];
+
+            // only show if there is more than one sentence
+            if (secondSentence != '' && secondSentence != ' ' && secondSentence !== null) {
+                init();
+                message = firstSentence + '. <a class="more" href="#">' + dictionary['READMORE'][urlCountryCode] + ' <span class="adaHidden">' + adaDescription + '</span></a><span class="info-box-content"><h2 id="info-box-heading" tabindex="0">' + dictionary['IMPORTANTNOTICE'][urlCountryCode] + '</h2><p tabindex="0">' + message + '</p></span>';
+            }
+        }
+    }
+    return message;
+}
+
+function initLiveData() {
+    // Different live data urls for English and Spanish pages
+    var fids = [];
+
+    if (typeof favoriteId != 'undefined' && favoriteId != '') {
+        fids.push(favoriteId);
+    }
+
+    if (pageLevel == 'indy') {
+        fids.push(fid);
+    } else {
+        jQuery('.map-list-item-wrap').each(function () {
+            var fid = $(this).attr('data-fid');
+            fids.push(fid);
+        });
+    }
+
+    var param = JSON.stringify({ 'fids': fids });
+
+    $.post(liveDataUrl, param).done(function (data) {
+        $('.hide-branch-hours').removeClass('hide-branch-hours');
+        if (data.length > 0) {
+            for (var i = 0; i < fids.length; i++) {
+                showLiveDataMsg(fids[i], data);
+            }
+        } else if (pageLevel == 'indy') {
+            if (bbaScheduleAvailable == 'Y' && initMarketingWellRotation) {
+                showMainVideo();
+            } else if (initMarketingWellRotation) {
+                initRotation();
+            }
+        }
+    });
+}
+
+function updateFavoriteStore(fid, message) {
+
+    var locationElement = '#favorite-location .js-live-data-wrap[data-fid="' + fid + '"]';
+    favoriteStoreMessageAppended = true;
+
+    $('.my-favorite-content').addClass('js-has-alert');
+
+    $('#favorite-location .js-live-data-wrap[data-fid="' + fid + '"] .' + message.name).addClass('is-block').find('.location-alert-content').html(escapeHtml(message.value)).attr('data-emergency-type', message.name);
+
+    //indicate location closed. remove any custom messages.
+    if (message.name === msgNameBranchEmergency) {
+        $(locationElement).find('.hours-status').addClass('display-none');
+        $(locationElement).find('.financial-center-hours').addClass('display-none');
+        var dataParticles = $(locationElement).attr('data-particles');
+        $(locationElement).attr('data-lid');
+        $(locationElement).attr('data-particles', dataParticles);
+    }
+
+    if (message.name === msgNameAtmEmergency) {
+        if ($(locationElement).attr('data-location-type') == 'ATM') {
+            $(locationElement).find('.hours-status').addClass('display-none');
+        }
+
+        var dataParticles = $(locationElement).attr('data-particles');
+        $(locationElement).attr('data-lid');
+        $(locationElement).attr('data-particles', dataParticles);
+        $(locationElement).find('.atm-hours').addClass('display-none');
+    }
+}
+function showLiveDataMsg(fid, msg) {
+
+    msgNameBranchEmergency = "branch_emergency";
+    msgNameAtmEmergency = "atm_emergency";
+    msgNameAtmStatus = "atmstatus";
+    msgNameCustom = "custom";
+
+    var messageCounter = 0;
+    for (var i = 0; i < msg.length; i++) {
+        if ($.inArray(fid.toString(), msg[i].fids) > -1) {
+
+            if (typeof favoriteId != 'undefined' && favoriteId == fid.toString()) {
+                favoriteStoreMessage = msg[i];
+            }
+
+            var msgText = urlCountryCode == 'en-us' ? msg[i].value : msg[i].value2;
+
+            if (pageLevel === 'indy') {
+                $('.live-data-message-alerts .' + msg[i].name).addClass('is-block').find('.location-alert-content').html(escapeHtml(msgText)).attr('data-emergency-type', msg[i].name);
+
+                //indicate location closed. remove any custom messages.
+                if (msg[i].name !== msgNameCustom && msg[i].name !== msgNameAtmStatus) {
+                    $('.custom').remove();
+                }
+                if (msg[i].name === msgNameBranchEmergency) {
+                    $('.hours-status').html(dictionary['CLOSED'][urlCountryCode]).addClass('is-closed');
+                    $('.status-primary-' + locationId).removeClass('status-primary-' + locationId);
+                    $('.hours').addClass('display-none');
+
+                    //Rotate any of the 4 promos
+                    if (initMarketingWellRotation && pageLevel == 'indy') {
+                        initRotation();
+                        //Set it to false since it's already been initialized previously. 
+                        initMarketingWellRotation = false;
+                    }
+                } else if (msg[i].name == msgNameAtmEmergency) {
+                    $('.atm-hours-status').html(dictionary['CLOSED'][urlCountryCode]).addClass('is-closed');
+
+                    $('.atm_status').remove();
+
+                    //Rotate any of the 4 promos
+                    if (initMarketingWellRotation && pageLevel == 'indy') {
+                        initRotation();
+                        //Set it to false since it's already been initialized previously. 
+                        initMarketingWellRotation = false;
+                    }
+                }
+            } else {
+                var locationElement = '.js-live-data-wrap[data-fid="' + fid + '"]';
+
+                $('.js-live-data-wrap[data-fid="' + fid + '"] .' + msg[i].name).addClass('is-block').find('.location-alert-content').html(escapeHtml(msgText)).attr('data-emergency-type', msg[i].name);
+
+                //indicate location closed. remove any custom messages.
+                if (msg[i].name !== msgNameCustom && msg[i].name !== msgNameAtmStatus) {
+                    $(locationElement).find('.custommessages').remove();
+                }
+
+                //indicate location closed. remove any custom messages.
+                if (msg[i].name === msgNameBranchEmergency) {
+                    $(locationElement).find('.hours-status').addClass('display-none');
+                    $(locationElement).find('.financial-center-hours').addClass('display-none');
+
+                    if (pageLevel == 'domain' || pageLevel == 'city') {
+                        var dataParticles = $(locationElement).attr('data-particles');
+                        var lid = $(locationElement).attr('data-lid');
+                        $(locationElement).attr('data-particles', dataParticles);
+                        $('.map-list-item-details[data-fid="' + fid + '"]').removeAttr('data-particles', '').removeClass('is-visible');
+                        $('.cmOverlay[data-lid="' + lid + '"]').attr('data-particles', dataParticles);
+                        messageCounter++;
+                    }
+                }
+
+                if (msg[i].name === msgNameAtmEmergency) {
+                    if ($(locationElement).attr('data-location-type') == 'ATM') {
+                        $(locationElement).find('.hours-status').addClass('display-none');
+                    }
+
+                    if (pageLevel == 'domain' || pageLevel == 'city') {
+                        var dataParticles = $(locationElement).attr('data-particles');
+                        var lid = $(locationElement).attr('data-lid');
+                        $(locationElement).attr('data-particles', dataParticles);
+                        $('.map-list-item-details[data-fid="' + fid + '"]').removeAttr('data-particles', '').removeClass('is-visible');
+                        $('.cmOverlay[data-lid="' + lid + '"]').attr('data-particles', dataParticles);
+                        messageCounter++;
+                    }
+
+                    $(locationElement).find('.atm-hours').addClass('display-none');
+                    $(locationElement).find('.atm_status').remove();
+                }
+            }
+        }
+    }
+    if (messageCounter != 0) {
+        applyFilters();
+
+        if (!favoriteStoreMessageAppended && typeof favoriteId != 'undefined' && favoriteStoreMessage != '') {
+            updateFavoriteStore(favoriteId, favoriteStoreMessage);
+        }
+    }
+}
+
+function initMarketingTracker() {
+    if (getQueryParams("cm_mmc")) {
+        setCookie('cm_mmc', getQueryParams("cm_mmc"), 1 / 24);
+    }
+    if (getQueryParams("marketingCode")) {
+        setCookie('marketingCode', getQueryParams("marketingCode"), 1 / 24);
+    }
+
+    var cm_mmc = getCookie('cm_mmc');
+    var marketingCode = getCookie('marketingCode');
+
+    var _href;
+    if (cm_mmc != '' && cm_mmc != null) {
+        _href = $(".js-appointment-link").attr("href");
+        $(".js-appointment-link").attr("href", _href + '&cm_mmc=' + cm_mmc);
+    }
+    if (marketingCode != '' && marketingCode != null) {
+        _href = $(".js-appointment-link").attr("href");
+        $(".js-appointment-link").attr("href", _href + '&marketingCode=' + marketingCode);
+    }
+}
+
+function sortMapList(container, mapList) {
+    var list = [];
+    var listData = {};
+
+    for (var i = 0; i < mapList.length; i++) {
+        var stateName = mapList[i].innerHTML;
+        list.push(stateName);
+        listData[stateName] = {
+            href: mapList[i].href,
+            name: mapList[i].name,
+            title: mapList[i].title
+        };
+    }
+
+    if (list.length > 0) {
+        var stateGroups = alphaGroup(list);
+        var output = '';
+        for (var key in stateGroups) {
+            if (stateGroups[key].length > 0) {
+                output += '<li><span class="letter">' + key.toUpperCase() + '</span>\n';
+                output += '<ul>\n';
+                for (var i = 0; i < stateGroups[key].length; i++) {
+                    var stateName = stateGroups[key][i];
+                    listData[stateName].href = listData[stateName].href.replace(fullDomainName, fullDomainName + mobileApplicationUrl);
+                    output += '<li><a href="' + listData[stateName].href + '" title="' + listData[stateName].title + '" name="' + listData[stateName].name + '" class="ga-link" data-ga="List, Region">' + stateName + '</a></li>';
+                }
+                output += '</ul></li>\n';
+            }
+        }
+        $(container).html(output);
+    }
+}
+
+function alphaGroup(list) {
+    if (!list.length > 0) {
+        return false;
+    }
+
+    var abc = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+    var output = {};
+    for (var l = 0; l < abc.length; l++) {
+        var currLetter = abc[l];
+        var group = [];
+        for (var i = 0; i < list.length; i++) {
+            var item = list[i];
+            var firstLetter = item.charAt(0).toLowerCase();
+            if (firstLetter === currLetter) {
+                group.push(item);
+            }
+        }
+        output[currLetter] = group;
+    }
+    return output;
+}
+
+var favoritesCookieName = 'favoriteStoreId';
+var makeFavoriteClick = false;
+
+function initFavorite() {
+
+    updateFavoriteLinks();
+    $(document).on('MAP_LIST_READY', updateFavoriteLinks);
+
+    if (pageLevel == 'domain') {
+        $(document).on('click', '.js-make-favorite', makeMyFavorite);
+    } else {
+        $('.js-make-favorite').on('click', makeMyFavorite);
+    }
+    $('.js-select-favorite').on('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        $(this).toggleClass('active');
+        $('.favorite-search').toggleClass('active');
+        $('body').toggleClass('favorite-wrap-open');
+
+        if ($(this).attr('aria-expanded') == 'false') {
+            $(this).attr('aria-expanded', 'true');
+        } else {
+            $(this).attr('aria-expanded', 'false');
+        }
+    });
+    $('.favorite-search').on('click', function (ev) {
+        ev.stopPropagation();
+    });
+    $('.js-open-favorite').on('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        $(this).toggleClass('active');
+        $('.favorite-location').toggleClass('active');
+
+        if ($(this).attr('aria-expanded') == 'false') {
+            $(this).attr('aria-expanded', 'true');
+        } else {
+            $(this).attr('aria-expanded', 'false');
+        }
+    });
+
+    $('.favorite-location').on('keydown', '.details', function (e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == 9) {
+            if (!e.shiftKey) {
+                $('.js-open-favorite').focus();
+                e.preventDefault();
+            }
+        }
+    });
+    $('.favorite-search').on('keydown', '#search-button-favorite', function (e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == 9) {
+            if (!e.shiftKey) {
+                $('.js-select-favorite').focus();
+                e.preventDefault();
+            }
+        }
+    });
+    $('.js-open-favorite, .js-select-favorite').on('keydown', function (e) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == 9 && $('.favorite-location').hasClass('active')) {
+            if (e.shiftKey) {
+                $('.favorite-location').find('.details').focus();
+                e.preventDefault();
+            }
+        }
+        if (keyCode == 9 && $('.favorite-search').hasClass('active')) {
+            if (e.shiftKey) {
+                $('.favorite-search').find('#search-button-favorite').focus();
+                e.preventDefault();
+            }
+        }
+    });
+
+    $(document).click(function (ev) {
+
+        if ($(ev.target).closest(".favorite-location").length == 0) {
+            $('.js-select-favorite').removeClass('active').attr('aria-expanded', 'false'); //hide the button
+            $('.js-open-favorite').removeClass('active').attr('aria-expanded', 'false');
+            $('body').removeClass('favorite-wrap-open');
+            $('.favorite-search').removeClass('active');
+            $('.favorite-location').removeClass('active');
+        }
+    });
+    $('.js-nearby-favorite-search').on('click', function (ev) {
+        ev.preventDefault();
+
+        if (pageLevel == 'domain') {
+            $(document).trigger('SEARCH_NEARBY');
+            $('.favorite-search').toggleClass('active');
+            $('.js-select-favorite').toggleClass('active');
+        } else {
+            window.location.href = "https://" + fullDomainName;
+        }
+    });
+    $(document).on('click', '.js-remove-favorite', function (ev) {
+        ev.preventDefault();
+        $('.favorite-search, .favorite-location').removeClass('active');
+        $('.js-make-favorite').removeClass('active').html(dictionary['MAKE_MY_FAVORITE'][urlCountryCode]).attr('title', dictionary['MAKE_MY_FAVORITE'][urlCountryCode]);
+        deleteCustomCookie(favoritesCookieName);
+        hideFavoriteDetails();
+    });
+}
+
+function updateFavoriteLinks() {
+    var favoriteId = getCookie(favoritesCookieName);
+    if (typeof favoriteId != 'undefined' && favoriteId != null && favoriteId != '') {
+        $('.js-make-favorite[data-fid="' + favoriteId.toString() + '"]').addClass('active').html(dictionary['MY_FAVORITE'][urlCountryCode]).attr('title', dictionary['MY_FAVORITE'][urlCountryCode]).attr('data-ga', pageLevel == 'indy' ? 'Indy, Remove Favorite' : 'Maplist, Remove Favorite');
+        getFavoriteDetails(favoriteId);
+    }
+}
+
+function makeMyFavorite(ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    var dataFid = $(this).attr('data-fid');
+    $('.favorite-search, .favorite-location').removeClass('active');
+    $('.my-favorite-content').removeClass('js-has-alert');
+
+    if ($(this).hasClass('active')) {
+        $('.js-make-favorite').removeClass('active');
+        $(this).removeClass('active');
+        $(this).html(dictionary['MAKE_MY_FAVORITE'][urlCountryCode]).attr('title', dictionary['MAKE_MY_FAVORITE'][urlCountryCode]).attr('data-ga', pageLevel == 'indy' ? 'Indy, Make My Favorite' : 'Maplist, Make My Favorite');
+        deleteCustomCookie(favoritesCookieName);
+        hideFavoriteDetails();
+    } else {
+        $('.js-make-favorite').removeClass('active');
+        $(this).addClass('active');
+        $(this).html(dictionary['MY_FAVORITE'][urlCountryCode]).attr('title', dictionary['MY_FAVORITE'][urlCountryCode]).attr('data-ga', pageLevel == 'indy' ? 'Indy, Remove Favorite' : 'Maplist, Remove Favorite');
+        setCustomCookie(favoritesCookieName, dataFid);
+        makeFavoriteClick = true;
+        getFavoriteDetails(dataFid);
+    }
+}
+
+function getFavoriteDetails(favId) {
+    $.ajax({
+        url: 'https://' + fullDomainName + '/data/' + favId + '/',
+        type: "GET",
+        success: function success(data) {
+            if (typeof data != 'undefined' && data != '') {
+                $('.favorite-location .map-list-favorite').html(data);
+                $('.map-list-item-wrap').addClass('loaded');
+
+                // Make some minor modifications to the appearance
+                var locationUrl = $('.favorite-location .location-name').attr('href');
+                var locationName = $('.favorite-location .location-name').text();
+                $('.favorite-location .map-list-item-details').remove();
+                $('.favorite-location .js-show-details').attr('href', locationUrl).text(dictionary['DETAILS'][urlCountryCode]).removeClass('js-show-details');
+                $('.my-favorite-content button').html(locationName);
+                $('.my-favorite-content').show();
+                $('.make-my-favorite-content').hide();
+
+                $('.favorite-location').find('.js-make-favorite').removeClass('js-make-favorite').addClass('js-remove-favorite').attr('title', dictionary['REMOVE'][urlCountryCode]).attr('data-ga', 'Favorite, Remove Favorite').html(dictionary['REMOVE'][urlCountryCode]);
+
+                for (var i = 0; i < hourSetNameArray.length; i++) {
+                    hourSetName = hourSetNameArray[i];
+                    mergeHours();
+                }
+                processedHours = getProcessedHours();
+                printSmartSentence(processedHours, printSmartSentenceCallback);
+
+                if (makeFavoriteClick) {
+                    $(document).trigger("getFavoriteStoreAlert");
+                } else {
+                    $(document).trigger("favoriteStoreReady");
+                }
+            }
+        }
+    });
+}
+function hideFavoriteDetails() {
+    $('.my-favorite-content').hide();
+    $('.make-my-favorite-content').show();
+}
+
+function openPrintModal() {
+    //console.log('openPrintModal called');
+
+    focusedElementBeforeModal = $(':focus');
+
+    if (pageLevel === 'indy') {
+        $('#content-wrap').clone().addClass('print-content').prependTo('body').wrap('<div />').modal({
+            fadeDuration: 50,
+            showClose: false
+        });
+    } else {
+        $('.print-content').append($('.locator .map-list')[0].outerHTML).modal({
+            fadeDuration: 50,
+            showClose: false
+        });
+    }
+
+    $('.print-content').find('.closeButton').focus();
+}
+
+// init before print listener
+var beforePrintCalled = false;
+var locNumbers = [];
+
+if ('matchMedia' in window) {
+    // Chrome, Firefox, and IE 10 support mediaMatch listeners
+    //console.log('has matchmedia');
+    window.matchMedia('print').addListener(function (media) {
+        if (media.matches) {
+            beforePrint();
+        } else {
+            afterPrint();
+        }
+    });
+}
+
+// IE and Firefox fire before/after events
+$(window).on('beforeprint', beforePrint);
+$(window).on('afterprint', afterPrint);
+
+function beforePrint() {
+    if (!beforePrintCalled) {
+        beforePrintCalled = true;
+        if (pageLevel === 'city' || pageLevel === 'search') {
+
+            $('.location:visible').each(function (index) {
+                locNumbers.push($(this).find('.locationNumber').text());
+
+                $(this).find('.locationNumber').text(index + 1);
+            });
+        }
+    }
+}
+
+function afterPrint() {
+    if (pageLevel === 'city' || pageLevel === 'search') {
+        //console.log('afterPrint called');
+        $('.location:visible').each(function (index) {
+            $(this).find('.locationNumber').text(locNumbers[index]);
+        });
+    }
+    beforePrintCalled = false;
+}
+
+function initMobileApp() {
+    $('.mobile-app-content a').on('click', function (ev) {
+        if ($(window).innerWidth() > 1023) {
+            ev.preventDefault();
+            $('.mobile-app-content a').removeClass('active');
+            var inputTypeValue = $(this).text();
+            $(this).addClass('active');
+            $('.getapp2__telfields').show();
+            $('.js-show-mobile-app-wrapper').find('.js-expander').trigger('click');
+
+            $('.js-show-mobile-app-wrapper').find('.js-expander').text(inputTypeValue);
+        }
+    });
+
+    $('.mobileAppPhone0').on('keyup', function () {
+        if ($(this).val().length == 3) {
+            $('.mobileAppPhone1').focus();
+        }
+    });
+    $('.mobileAppPhone1').on('keyup', function () {
+        if ($(this).val().length == 3) {
+            $('.mobileAppPhone2').focus();
+        }
+    });
+
+    $('.js-show-mobile-app-wrapper .js-expander').on('click', function () {
+        $(this).text(dictionary[urlCountryCode]);
+    });
+
+    $('.getAppButton').on('click', function (ev) {
+        ev.preventDefault();
+
+        var value0 = $('.mobileAppPhone0').val();
+        var value1 = $('.mobileAppPhone1').val();
+        var value2 = $('.mobileAppPhone2').val();
+
+        var device = $('#mobile-app-content a.active').attr('data-device');
+
+        var language = 'en';
+
+        if (urlCountryCode == 'es-us') {
+            language = 'es';
+        }
+
+        if (value0 == '' || value1 == '' || value2 == '') {
+            $('#send-app-container').addClass('invalid');
+            $('.send-app-error-message').html(dictionary['PLEASE_ENTER_VALID_PHONE'][urlCountryCode]);
+        } else {
+            $('.send-app-error-message').html('');
+            $('#send-app-container').removeClass('invalid');
+            $(this).addClass('is-disabled');
+            sendSMS(device, language, value0, value1, value2);
+        }
+    });
+}
+
+function sendSMS(device, language, phoneNumber1, phoneNumber2, phoneNumber3) {
+
+    var phoneNumber = "1" + phoneNumber1 + phoneNumber2 + phoneNumber3;
+
+    $.ajax("https://" + fullDomainName + "/sms/" + language + "/" + device + "/" + phoneNumber + "/").done(function (response) {
+        $('.send-app-form-container').hide();
+        $('.send-app-thankyou-container').show();
+        $('.send-app-thankyou-container .input-tel').text("(" + phoneNumber1 + ") " + phoneNumber2 + "-" + phoneNumber3);
+        console.log(response);
+    });
+}
+
+pageLevel == 'domain' ? true : false;
+
+window.cachedAutocompleteHTML = {};
+window.console = window.console || function () {
+    var c = {};c.log = c.warn = c.debug = c.info = c.error = c.time = c.dir = c.profile = c.clear = c.exception = c.trace = c.assert = function (s) {};
+    return c;
+}();
+
+var windowWidth = parseInt(jQuery(window).width());
+var previousFocusElement = '';
+var mobileTopOffset = 0;
+
+/* prevent space from scrolling down page */
+window.onkeydown = function (e) {
+    if (e.keyCode == 32 && e.target == document.body) {
+        e.preventDefault();
+    }
+};
+
+initMobileApp();
+
+var navigationManualClick = false;
+$('.top-navigation-wrapper a').on('click', function () {
+    var anchorText = $(this).text();
+    $('.top-navigation-wrapper a').removeClass('active');
+    $(this).addClass('active');
+
+    navigationManualClick = true;
+
+    setTimeout(function () {
+        navigationManualClick = false;
+    }, 1500);
+
+    if ($(window).innerWidth() < 1024) {
+        $('.mobile-navigation-wrapper button').text(anchorText);
+        $('.mobile-navigation-wrapper button').trigger('click');
+    }
+});
+
+$('#footer_bofa_feedback').on('click', function (ev) {
+    ev.preventDefault();
+    bactm.plugins.feedback.launch();
+    return false;
+});
+
+if (!isMobileApp && !specialtyPageMode && urlCountryCode == 'en-us' && pageLevel$1 == 'domain') ;
+
+$('#NAV_EN_ES_MEDIUM').on('keydown', function (e) {
+    if ($(window).innerWidth() < 768) {
+        var keyCode = e.keyCode || e.which;
+        if (keyCode == 9) {
+            if (!e.shiftKey) {
+                $('.close-top-nav').focus();
+                e.preventDefault();
+            }
+        }
+    }
+});
+$('.close-top-nav').on('keydown', function (e) {
+    var keyCode = e.keyCode || e.which;
+    if (keyCode == 9 && $(this).attr('aria-expanded') === "true") {
+        if (e.shiftKey) {
+            $('#NAV_EN_ES_MEDIUM').focus();
+            e.preventDefault();
+        }
+    }
+});
+
+if (pageLevel$1 == 'indy' && $('.location-cta-slider-wrapper .location-cta-slide').length > 0) {
+    $('.location-cta-slider-wrapper').slick({
+        'dots': true
+    });
+}
+if (pageLevel$1 == 'indy') {
+
+    var targetElements = [];
+
+    $('.desktop-navigation a').each(function () {
+        targetElements.push($(this).attr('href'));
+    });
+
+    $(window).on('scroll', function () {
+        if (!navigationManualClick) {
+            for (var y = 0; y < targetElements.length; y++) {
+                if ($(window).scrollTop() > $(targetElements[y]).offset().top - 1) {
+                    $('.top-navigation-wrapper a').removeClass('active');
+                    $('.top-navigation-wrapper a[href="' + targetElements[y] + '"]').addClass('active');
+
+                    if ($(window).innerWidth() < 1024) {
+                        var anchorText = $('.top-navigation-wrapper a[href="' + targetElements[y] + '"]:first').text();
+                        $('.mobile-navigation-wrapper button').text(anchorText);
+                    }
+                }
+            }
+        }
+    });
+}
+
+/* Async city and region links */
+$('body.domain, body.search').on('click', '.map-list .map-list-item-wrap.is-single a', function (event) {
+    event.preventDefault();
+    var searchTerm = $(this).data('search-term');
+    $('input[name=locator-search-value]').val(searchTerm);
+    $('#map-search-form').submit();
+});
+
+$(document).on('click', '.js-open-details-modal', function () {
+    $('.map-list-item-details').removeClass('active');
+    var locationId = $(this).attr('data-lid');
+    openMapModal(locationId);
+});
+
+$('.locator').on('click', '.map-list-item-wrap', function (e) {
+    if ($(window).innerWidth() > 767) {
+        var lid = $(this).attr('data-lid');
+
+        if (e.target.tagName.toLowerCase() !== 'a' && e.target.tagName.toLowerCase() !== 'button') {
+            previousFocusElement = $(this).find('.js-open-details-modal');
+            openMapModal(lid);
+        }
+    }
+});
+
+$('.locator').on('mouseenter', '.map-list-item-wrap', function () {
+
+    if (!$('body').hasClass('js-map-modal-open') && $(window).innerWidth() > 767 && pageLevel$1 != 'indy') {
+        var locationId = $(this).attr('data-lid');
+        $('.cmOverlay').removeClass('hover-active');
+        $('.locator .map-list-item-wrap').removeClass('hover-active');
+        $('.map-list-item-wrap[data-lid="' + locationId + '"]').addClass('hover-active');
+        $('.cmOverlay[data-lid="' + locationId + '"]').addClass('hover-active');
+    }
+});
+$('.locator').on('mouseleave', '.map-list-item-wrap', function () {
+    if (!$('body').hasClass('js-map-modal-open') && $(window).innerWidth() > 767) {
+        $('.cmOverlay').removeClass('selected').removeClass('hover-active');
+        $('.locator .map-list-item-wrap').removeClass('hover-active');
+    }
+});
+
+if (pageLevel$1 != 'indy' && !specialtyPageMode && tileMode == TileMode.GOOGLE) {
+    init$3();
+}
+
+init$2();
+
+adjustBodyClasses(true);
+$(window).on('resize', function () {
+    adjustBodyClasses(false);
+});
+
+$('.close-top-nav').on('click', function () {
+    if ($(this).attr('aria-expanded') == 'true') {
+        $(this).attr('aria-expanded', 'false');
+        $('#headerMenuContainer').attr('aria-hidden', 'true');
+        $('#headerMenuContainer').find('.search').hide();
+    } else {
+        $(this).attr('aria-expanded', 'true');
+        $('#headerMenuContainer').attr('aria-hidden', 'false');
+        $('#headerMenuContainer').find('.search').show();
+    }
+});
+
+var LoadSequencer = function () {
+    function LoadSequencer(intervalRate, selector) {
+        _classCallCheck(this, LoadSequencer);
+
+        this.intervalRate = intervalRate;
+        this.selector = selector + ':not(.loaded)';
+    }
+
+    _createClass(LoadSequencer, [{
+        key: 'init',
+        value: function init() {
+            var _this = this;
+
+            var reveal = function reveal() {
+                var items = $(_this.selector);
+                if (items.length != 0) {
+                    $(items[0]).addClass('loaded');
+                } else {
+                    window.clearInterval(timer);
+                }
+            };
+            reveal();
+            var timer = window.setInterval(reveal, this.intervalRate);
+        }
+    }]);
+
+    return LoadSequencer;
+}();
+
+var mapItemSequencer = new LoadSequencer(30, '.map-list .map-list-item-wrap');
+if (pageLevel$1 === 'region' || pageLevel$1 == 'indy') {
+    mapItemSequencer.init();
+}
+
+if (pageLevel$1 == 'indy') {
+    var count = $('.location-image-slider img').length;
+
+    if (typeof count != 'undefined' && count != null && count > 1) {
+        $('.location-image-slider').slick({
+            dots: false,
+            infinite: true,
+            speed: 500,
+            slidesToShow: 1
+        });
+    }
+}
+$(document).on(Events.MAP_LIST_READY, function () {
+    mapItemSequencer.init();
+
+    initMarketingTracker();
+    initExternalLink();
+    initTranslationModal();
+    initGlobalAlert();
+    init();
+    initLiveData();
+    truncateRestrictedMessage();
+});
+
+$(document).on(Events.SEARCH_SUCCESS, function (event, data) {
+    data.markers.length;
+    typeof data.options.lat != 'undefined' ? data.options.search : 'you';
+
+    if (typeof data.options.search != 'undefined') {
+        var icon = LeafletL.DivIcon.dataMarkup({
+            className: 'map-marker cmOverlay search-location',
+            iconSize: [15, 15],
+            iconAnchor: [7.5, 7.5],
+            lat: data.originLat,
+            lng: data.originLng,
+            visible: true
+        });
+
+        if (mapCreated) {
+            var newMarker = LeafletL.marker([data.originLat, data.originLng], {
+                icon: icon
+            });
+            newMarker.addTo(MapData.map);
+        }
+
+        // remove tabindex from each pin
+        $('.cmOverlay').each(function () {
+            $(this).attr('tabindex', '-1');
+        });
+    }
+});
+
+window.onpageshow = function (event) {
+    if (event.persisted) {
+        initFavorite();
+    }
+};
+
+$(document).ready(function () {
+
+    if (window.location.search.indexOf('map-mode=true') > -1 && $(window).width() < 768) {
+        jQuery('.js-show-map').trigger('click');
+    }
+
+    init$1();
+    initVideoPlayBack();
+    initFavorite();
+
+    if (pageLevel$1 == 'indy') {
+        init();
+    }
+    if (pageLevel$1 == 'domain') {
+        initTranslationModal();
+    }
+    if (pageLevel$1 == 'region' || pageLevel$1 == 'city' || pageLevel$1 == 'indy') {
+        initGlobalAlert();
+        initLiveData();
+        initMarketingTracker();
+        initExternalLink();
+        initTranslationModal();
+        init();
+    }
+
+    if (isInternationalPage == true) {
+        initExternalLink();
+        initTranslationModal();
+    }
+
+    $('.js-print-map').on('click', function (ev) {
+        ev.preventDefault();
+        openPrintModal();
+    });
+    //Create function to hide print button on street view
+});
+
+//Sort the map list alphabetically with list item letters from A to Z
+if (pageLevel$1 == 'domain') {
+    sortMapList('.browse-content', $('.browse-content').find('a'));
+} else if (pageLevel$1 == 'region') {
+    sortMapList('.map-list', $('.map-list').find('a'));
+}
+
+$('.skip-nav-link').on('click', function (event) {
+    event.preventDefault();
+    window.location = '#skip-nav';
+    document.getElementById('skip-nav').focus();
+});
+
+$(document).on('click', '#modalPrintButton', function () {
+    $.modal.close();
+    $('.print-content').hide();
+
+    setTimeout(function () {
+        window.print();
+    }, 100);
+});
+
+$(document).on('click', '.js-appointment-link', function (ev) {
+    floodLightTag("appointment");
+});
+$(document).on('click', '.js-track-directions', function () {
+    floodLightTag("directions");
+});
+
+$(document).on('click', '.js-phone', function () {
+    floodLightTag('click-to-call');
+});
+$(document).on('click', '.js-show-details', function () {
+    floodLightTag('services');
+});
+$('.js-filter-toggle').on('click', function () {
+    floodLightTag('filter');
+});
+
+$(document).on('click', '.js-track-directions', function (ev) {
+    var inputValue = jQuery('#q').val();
+    if (inputValue != '') {
+        ev.preventDefault();
+        jQuery(this);
+    }
+});
+
+$(document).on('click', '.cmOverlay', function () {
+    if (pageLevel$1 == 'domain' || pageLevel$1 == 'city') {
+        var lid = $(this).attr("data-lid");
+
+        $('.locator .map-list-item-wrap').removeClass('selected').removeClass('hover-active');
+        $('.cmOverlay').removeClass('selected').removeClass('hover-active');
+
+        $(this).addClass('selected').addClass('hover-active');
+
+        if ($(window).innerWidth() < 768) {
+            $('.favorite-search').removeClass('active');
+            $('.js-select-favorite').attr('aria-expanded', 'false');
+        }
+
+        var selector = '#lid' + lid;
+        if (typeof $(selector).offset() != 'undefined') {
+            var scrollTo = $(selector).offset().top - $('.map-list').offset().top;
+            $(".map-list-wrap").animate({ scrollTop: scrollTo }, 0);
+            $('.map-list-item-details').removeClass('active');
+            $('.map-list-item-wrap' + '[data-lid="' + lid + '"]').addClass('selected').addClass('hover-active');
+
+            if ($(window).innerWidth() > 767) {
+                openMapModal(lid);
+            } else {
+                zoomIntoPin(lid);
+            }
+        }
+
+        if ($(window).innerWidth() > 767) {
+            previousFocusElement = $(this);
+        }
+    }
+});
+
+$(document).on('click', function (ev) {
+
+    //If a user clicks anywhere outside of the map modal container it should close. However, it should not close if a user clicks on a map pin, the map card, or the close button for the info popup. 
+    if (!$(ev.target).closest("#map-modal-container").length > 0 && !$(ev.target).closest('.map-list-item-wrap').length > 0 && !$(ev.target).closest('.cmOverlay').length > 0 && !$(ev.target).closest('.bofa-info-box').length > 0 && !$(ev.target).closest('.map-list-item-details').length > 0) {
+        if ($('#map-modal-container').hasClass('active') || $('body').hasClass('js-map-modal-open')) {
+            closeMapModal();
+        }
+    }
+});
+
+if (pageLevel$1 == 'indy') {
+    $('.js-remove-location-alert').on('keypress click', function () {
+        var itemToRemove = $(this).attr('data-close');
+        $(itemToRemove).addClass('is-hidden').removeClass('is-block');
+    });
+} else {
+    $(document).on('keypress click', '.js-remove-location-alert', function () {
+        var itemToRemove = $(this).attr('data-close');
+        $(itemToRemove).addClass('is-hidden').removeClass('is-block');
+    });
+}
+
+$('.js-mobile-options').on('keypress click', function (ev) {
+    ev.preventDefault();
+    toggleMobileOptions();
+
+    if ($(this).attr('aria-expanded') == "false") {
+        // options is closed
+        $(this).attr('aria-expanded', 'true');
+    } else {
+        // options is open
+        $(this).attr('aria-expanded', 'false');
+    }
+});
+
+function toggleMobileOptions() {
+    jQuery('.mobile-options').toggleClass('active');
+}
+
+function adjustBodyClasses(isInitial) {
+
+    var newWindowWidth = parseInt(jQuery(window).innerWidth());
+
+    if (isInitial || newWindowWidth < 1024 && windowWidth >= 1024 || newWindowWidth >= 1024 && windowWidth < 1024 || newWindowWidth < 768 && windowWidth >= 768 || newWindowWidth >= 768 && windowWidth < 768) {
+        windowWidth = newWindowWidth;
+
+        if (windowWidth < 768) {
+            $('body').removeClass('large-up').addClass('small small-up small-only');
+        } else if (windowWidth < 1025) {
+            $('body').removeClass('large-up').addClass('medium medium-up medium-only');
+        } else {
+            $('body').addClass('large-up').removeClass('small').removeClass('small-up').removeClass('small-only');
+        }
+    }
+}
+
+$('.js-expander, .js-mobile-expander').on('click', function (e) {
+
+    var elem = $(this);
+    var region = elem.attr('aria-controls');
+
+    if (elem.attr('aria-expanded') == 'false') {
+        jQuery(this).addClass('expanded');
+    } else {
+        jQuery(this).removeClass('expanded');
+    }
+
+    $('#' + region).slideToggle(400, function () {
+
+        if (elem.attr('aria-expanded') == 'false') {
+            // region is collapsed
+
+            // update the aria-expanded attribue of the header
+            elem.attr('aria-expanded', 'true');
+
+            // update the aria-hidden attribute of the region
+            $(this).attr('aria-hidden', 'false');
+
+            // move focus to the region
+            elem.focus();
+        } else {
+            // region is expanded
+
+            // update the aria-expanded attribute of the header
+            elem.attr('aria-expanded', 'false');
+
+            // update the aria-hidden attribute of the region
+            $(this).attr('aria-hidden', 'true');
+        }
+    });
+
+    e.stopPropagation();
+    return false;
+});
+
+window.addEventListener('hashchange', function () {
+    if ($(window).innerWidth() < 768 && $('body').hasClass('map-mode') && window.location.hash == '') {
+        $('.locator .map-list-item-wrap').removeClass('selected').removeClass('hover-active');
+        $('.js-show-list').trigger('click');
+    }
+});
+
+$('.js-show-map').on('click', function (ev) {
+    ev.preventDefault();
+
+    //add top offset so we can bring user back to the same offset when clicking view list
+    mobileTopOffset = $(document).scrollTop();
+
+    $(this).parent().removeClass('active');
+    $('.js-show-list').parent().addClass('active');
+
+    window.location.hash = 'map-view';
+
+    // hide search & list from view - this stops them from being focusable/tabbable
+    $('.map-search-wrap').addClass('is-hidden');
+    $('.favorite-search .map-search-wrap').removeClass('is-hidden');
+
+    // show map
+    $('.col-map').css('display', 'block');
+    $('body').addClass('map-mode');
+
+    $('.cmOverlay').removeClass('selected').removeClass('hover-active');
+    $('.locator .map-list-item-wrap').removeClass('selected').removeClass('hover-active');
+    $('.map-list-item-details').removeClass('active');
+    $('.js-show-details').show();
+
+    if (jQuery('.mobile-options').hasClass('active')) {
+        toggleMobileOptions();
+    }
+
+    // maplist hidden
+    $('.js-show-list').attr('aria-expanded', 'false');
+    $('.col-maplist').attr('aria-hidden', 'true');
+
+    // map visible
+    $('.js-show-map').attr('aria-expanded', 'true');
+    $('.col-map').attr('aria-hidden', 'false');
+
+    $(document).trigger(Events.CREATE_MAP);
+
+    $('.js-mobile-options').focus();
+});
+
+$(document).on('click', '.distance', function (ev) {
+    ev.stopPropagation();
+    if ($('body').hasClass('map-mode')) {
+        $('.locator .map-list-item-wrap').removeClass('selected').removeClass('hover-active');
+        $('.cmOverlay').removeClass('selected').removeClass('hover-active');
+    } else if ($(window).innerWidth() < 768 && (pageLevel$1 == 'domain' || pageLevel$1 == 'city')) {
+        $('.js-show-map').trigger('click');
+
+        mobileTopOffset = $(document).scrollTop();
+
+        //Activate pin when user switches to map mode
+        var thisLid = $(this).closest('.map-list-item-wrap').attr('data-lid');
+        setTimeout(function () {
+            $('.cmOverlay[data-lid="' + thisLid + '"]').trigger('click');
+        }, 1000);
+    }
+});
+$('.locator').on('click', '.map-list-item-wrap .index', function (ev) {
+    ev.stopPropagation();
+    if ($(window).innerWidth() < 768 && (pageLevel$1 == 'domain' || pageLevel$1 == 'city')) {
+        $('.js-show-map').trigger('click');
+
+        //Activate pin when user switches to map mode
+        var thisLid = $(this).closest('.map-list-item-wrap').attr('data-lid');
+        setTimeout(function () {
+            $('.cmOverlay[data-lid="' + thisLid + '"]').trigger('click');
+        }, 1000);
+    }
+});
+
+$('.js-show-list').on('click', function (ev) {
+    ev.preventDefault();
+    $(this).parent().removeClass('active');
+    $('.js-show-map').parent().addClass('active');
+
+    // show search & list
+    $('.map-search-wrap').removeClass('is-hidden');
+
+    $('.map-list-wrap').removeClass('is-hidden');
+    $('.map-list-item-wrap').removeClass('selected');
+    $('.map-list-item-wrap').removeClass('hover-active');
+
+    // hide map from view -- this stops them from being focusable/tabbable
+    $('.col-map').css('display', 'none');
+    $('body').removeClass('map-mode');
+
+    toggleMobileOptions();
+
+    $(document).scrollTop(mobileTopOffset);
+
+    // maplist visible
+    $('.js-show-list').attr('aria-expanded', 'true');
+    $('.col-maplist').attr('aria-hidden', 'false');
+
+    // map hidden
+    $('.js-show-map').attr('aria-expanded', 'false');
+    $('.col-map').attr('aria-hidden', 'true');
+});
+
+$('#p').focus(function () {
+    closeMapModal();
+    if ($(this).val() != '') {
+        $('#map-search-form-name').find("input[type=text]").trigger('keyup');
+    }
+});
+
+$('.js-filter-toggle').on('click', function (ev) {
+
+    ev.preventDefault();
+
+    $('.map-filter-wrap').slideToggle(600, function () {
+        $('body').addClass('filter-open');
+        $('.cmOverlay').removeClass('selected').removeClass('hover-active');
+        $('.locator .map-list-item-wrap').removeClass('selected').removeClass('hover-active');
+        $('.map-list-item-details').removeClass('active');
+        $('.js-filter-toggle').attr('aria-expanded', 'true');
+        $(this).attr('aria-hidden', 'false');
+
+        $('.map-filter-wrap .close-details').focus();
+
+        if ($(window).innerWidth() < 768) {
+            toggleMobileOptions();
+        }
+    });
+});
+
+$(document).on('click', '.js-show-details', function (ev) {
+    ev.preventDefault();
+    var lid = $(this).attr('data-lid');
+
+    previousFocusElement = $(this);
+    openMapModal(lid);
+});
+
+var initializedModal = [];
+
+$(document).on(Events.ASYNC_RESULTS, function (event, data) {
+    initializedModal = [];
+});
+
+function openMapModal(currentLid) {
+
+    $('body').addClass('js-map-modal-open');
+    $('#map-list-details-' + currentLid).addClass('active');
+
+    if ($(window).innerWidth() > 767) {
+        zoomIntoPin(currentLid);
+    }
+
+    if (initializedModal.indexOf(currentLid) == -1) {
+        if (typeof $('#map-list-details-' + currentLid).attr('data-location-type') != 'undefined' && $('#map-list-details-' + currentLid).attr('data-location-type') == "ATM") {
+            $('#map-list-details-' + currentLid + ' [data-show="tab-financial-center-services"]').remove();
+            $('#map-list-details-' + currentLid + ' [data-tab="tab-financial-center-services"]').remove();
+            $('#map-list-details-' + currentLid + ' [data-show="tab-service-specialist-services"]').remove();
+            $('#map-list-details-' + currentLid + ' [data-tab="tab-service-specialist-services"]').remove();
+
+            $('#map-list-details-' + currentLid + ' .js-modal-tabs ul').append('<li class="tab-placeholder"></li>');
+            $('#map-list-details-' + currentLid + ' .js-modal-tabs ul').append('<li class="tab-placeholder"></li>');
+        } else {
+            if ($('#map-list-details-' + currentLid + ' .js-tab-content .me-advisor-content').length == 0) {
+                $('#map-list-details-' + currentLid + ' [data-show="tab-service-specialist-services"]').remove();
+                $('#map-list-details-' + currentLid + ' [data-tab="tab-service-specialist-services"]').remove();
+                $('#map-list-details-' + currentLid + ' .js-modal-tabs ul').append('<li class="tab-placeholder"></li>');
+            }
+        }
+        initializedModal.push(currentLid);
+    }
+
+    $('.js-modal-tabs li').removeClass('active').find('button').attr('aria-expanded', false);
+    $('.js-modal-tabs li:first-child').addClass('active').find('button').attr('aria-expanded', true);
+    $('.js-modal-tab-content .js-tab-content').removeClass('active');
+    $('.js-modal-tab-content .js-tab-content:first-child').addClass('active');
+
+    if ($(window).width() > 767) {
+        $('#map-modal-container').html($('#map-list-details-' + currentLid).html());
+
+        if ($('#map-modal-container').hasClass('active')) {
+            $('#map-modal-container').addClass('active').attr('aria-expanded', 'true');
+        } else {
+
+            if ($(window).width() > 960) {
+                $('#map-modal-container').addClass('active').animate({ "left": "400px" }, "slow").attr('aria-expanded', 'true');
+            } else {
+                var leftOffsetModal = ($(window).innerWidth() - 31) / 2;
+                $('#map-modal-container').addClass('active').animate({ "left": leftOffsetModal + "px" }, "slow").attr('aria-expanded', 'true');
+            }
+        }
+    } else {
+        $('.map-list-item-details').attr('aria-expanded', 'true');
+        $('.js-show-details[data-lid="' + currentLid + '"]').hide();
+    }
+
+    $('.cmOverlay').removeClass('selected').removeClass('hover-active');
+    $('.cmOverlay[data-lid="' + currentLid + '"]').addClass('selected').addClass('hover-active');
+
+    $('.js-name-search-results').removeClass('active');
+
+    $('.locator .map-list-item-wrap').removeClass('selected').removeClass('hover-active');
+    $('.map-list-item-wrap[data-lid="' + currentLid + '"]').addClass('selected').addClass('hover-active');
+
+    var selector = '#lid' + currentLid;
+
+    if (typeof $(selector).offset() != 'undefined') {
+        var globalAlertHeight = 0;
+
+        if ($('.map-list-wrap .global-alerts .location-alert-content').html() != '') {
+            globalAlertHeight = $('.map-list-wrap .global-alerts').outerHeight();
+        }
+        var scrollTo = $(selector).offset().top - $('.map-list').offset().top + globalAlertHeight;
+        $(".map-list-wrap").animate({ scrollTop: scrollTo }, 500);
+    }
+
+    if ($(window).innerWidth() > 767) {
+        $('.js-close-details').focus();
+    } else {
+        $('html,body').animate({ scrollTop: $('.map-list-wrap .map-list-item-wrap[data-lid="' + currentLid + '"]').offset().top }, 800);
+    }
+
+    $('.js-modal-tabs li').off('click').on('click', function (ev) {
+        ev.preventDefault();
+        var toShow = $(this).attr('data-show');
+
+        if (typeof toShow != 'undefined' && toShow != '') {
+            $('.js-modal-tabs li').removeClass('active').find('button').attr('aria-expanded', false);
+            $(this).addClass('active').find('button').attr('aria-expanded', true);
+            $('.js-tab-content').removeClass('active');
+            $('.js-tab-content[data-tab*="' + toShow + '"]').addClass('active');
+        }
+    });
+    $('.js-close-details').off('click').on('click', function (ev) {
+        closeMapModal();
+    });
+}
+
+if (sbBankerMode) {
+    $(document).on(Events.SEARCH_SUBMIT, function (event, search) {
+        closeMapModal();
+    });
+
+    if ($(window).innerWidth() > 767) {
+        $(window).on('click', function (e) {
+            if ($('.js-name-search-results').hasClass('active')) {
+                var obj = $(".name-search-wrap");
+                if (!obj.is(event.target) && !obj.has(event.target).length) {
+                    $('.js-name-search-results').removeClass('active');
+                }
+            }
+        });
+    }
+}
+
+function zoomIntoPin(pinLid) {
+    if (typeof MarkerData != 'undefined') {
+        MarkerData.markers.forEach(function (data) {
+            if (data.locationId == pinLid) {
+                MapData.map.invalidateSize();
+
+                var southWest = LeafletL.latLng(data.lat, data.lng),
+                    northEast = LeafletL.latLng(data.lat, data.lng);
+                LeafletL.latLngBounds(southWest, northEast);
+
+                var zoomLevel = MapData.map.getZoom() < 12 ? 12 : MapData.map.getZoom();
+                console.log(zoomLevel);
+                var zoomOffset = 0.06;
+                switch (zoomLevel) {
+                    case 12:
+                        zoomOffset = 0.068;
+                        break;
+                    case 13:
+                        zoomOffset = 0.035;
+                        break;
+                    case 14:
+                        zoomOffset = 0.017;
+                        break;
+                    case 15:
+                        zoomOffset = 0.0085;
+                        break;
+                    case 16:
+                        zoomOffset = 0.0043;
+                        break;
+                    case 17:
+                        zoomOffset = 0.0021;
+                        break;
+                    case 18:
+                        zoomOffset = 0.0010;
+                        break;
+                }
+
+                var longitudeOffset = $(window).innerWidth() > 767 ? zoomOffset : 0.00;
+
+                MapData.map.setView([data.lat, data.lng - longitudeOffset], zoomLevel, {
+                    "animate": true,
+                    "pan": {
+                        "duration": .5
+                    }
+                });
+            }
+        });
+    }
+}
+function closeMapModal(itemToClose) {
+
+    $('.map-list-wrap').off('scroll');
+
+    if ($(window).innerWidth() > 767) {
+        MapData.map.invalidateSize();
+    }
+
+    if (typeof itemToClose != 'undefined' && itemToClose != '' && itemToClose == "filter-open") {
+        $('.map-filter-wrap').slideToggle(600, function () {
+            $('body').removeClass('filter-open');
+            $('.js-filter-toggle').attr('aria-expanded', 'false');
+            $(this).attr('aria-hidden', 'true');
+
+            $('.js-filter-toggle').focus();
+        });
+    } else {
+
+        if (previousFocusElement != '') {
+            previousFocusElement.focus();
+            previousFocusElement = '';
+        }
+
+        $('#map-modal-container').animate({ "left": "0px" }, 500);
+
+        setTimeout(function () {
+            $('#map-modal-container').removeClass('active');
+            $('.cmOverlay').removeClass('selected').removeClass('hover-active');
+            $('.locator .map-list-item-wrap').removeClass('selected').removeClass('hover-active');
+            $('.map-list-item-details').removeClass('active');
+            $('.map-list-item-details').attr('aria-expanded', 'false');
+            $('#map-modal-container').attr('aria-expanded', 'false');
+            $('.js-show-details').show();
+            $('#map-modal-container').empty();
+            $('body').removeClass('js-map-modal-open');
+        }, 500);
+    }
+}
+
+$('.js-show-all-filters').on('click', function (ev) {
+    ev.preventDefault();
+
+    if ($('body').hasClass('show-all-filters')) {
+        jQuery('body').removeClass('show-all-filters');
+        jQuery(this).text(dictionary['VIEW_ALL_FILTERS'][urlCountryCode]);
+        jQuery('.js-filter-type').text(dictionary['MOST_POPULAR'][urlCountryCode]);
+    } else {
+        jQuery('body').addClass('show-all-filters');
+        jQuery(this).text(dictionary['VIEW_MOST_POPULAR'][urlCountryCode]);
+        jQuery('.js-filter-type').text(dictionary['OTHER_FILTERS'][urlCountryCode]);
+    }
+});
+$(document).on('click', '.js-close-details', function (ev) {
+    ev.preventDefault();
+
+    var itemToClose = $(this).attr('data-close');
+
+    if (sbBankerMode) {
+        closeMapModal(itemToClose);
+    } else {
+        if (typeof itemToClose != 'undefined' && itemToClose != '' && itemToClose == "filter-open") {
+            $('.map-filter-wrap').slideToggle(600, function () {
+                $('body').removeClass('filter-open');
+                $('.js-filter-toggle').attr('aria-expanded', 'false');
+                $(this).attr('aria-hidden', 'true');
+
+                $('.js-filter-toggle').focus();
+            });
+        } else {
+            closeMapModal();
+        }
+    }
+});
+
+$('#footer_bofa_advertising_practices, #advertisingPracticesLayerSpartaUILayerClose').on('click', function (ev) {
+    ev.preventDefault();
+
+    if ($('#advertising-modal').hasClass('active')) {
+        $('#footer_bofa_advertising_practice').focus();
+        $('#advertisingPracticesLayerSpartaUILayer').toggleClass('active');
+    } else {
+        $('#advertisingPracticesLayerSpartaUILayer').toggleClass('active');
+
+        var topOffset = $(this).offset().top - $('#footer-container').offset().top - $('#advertisingPracticesLayerSpartaUILayer').height() - 20;
+        var leftOffset = $(this).offset().left - $('#advertisingPracticesLayerSpartaUILayer').width() / 2 / 2;
+
+        $('#advertisingPracticesLayerSpartaUILayer').css('top', topOffset);
+        $('#advertisingPracticesLayerSpartaUILayer').css('left', leftOffset);
+
+        $('#advertisingPracticesLayerSpartaUILayerClose').focus();
+    }
+});
+
+// $("#footer_bofa_feedback").on('click', function(e) {
+//     e.preventDefault();
+//     if (typeof OOo !== "undefined" && typeof OOo.oo_launch === "function") {
+//         OOo.oo_launch(e, "oo_feedback")
+//     }
+// });
+
+$('a[href*="#"]')
+// Remove links that don't actually link to anything
+.not('[href="#"]').not('[href="#0"]').click(function (event) {
+    // On-page links
+    if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
+        // Figure out element to scroll to
+        var target = $(this.hash);
+        target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
+        // Does a scroll target exist?
+        if (target.length) {
+            // Only prevent default if animation is actually gonna happen
+            event.preventDefault();
+            $('html, body').animate({
+                scrollTop: target.offset().top
+            }, 1000, function () {
+                // Callback after animation
+                // Must change focus!
+                var $target = $(target);
+                $target.focus();
+                if ($target.is(":focus")) {
+                    // Checking if the target was focused
+                    return false;
+                } else {
+                    $target.attr('tabindex', '-1'); // Adding tabindex for elements not focusable
+                    $target.focus(); // Set focus again
+                }
+            });
+        }
+    }
+});
+
+if ($(window).width() < 1025) {
+    var hamburgerFlyout = $('#hamburgerMenuDrawerContainerSpartaUILayer');
+    var hamburgerContent = $('#hamburgerMenuDrawerContainerSpartaUILayer .spa-dialog');
+    var hamburgerClose = $('#hamburgerMenuDrawerContainerSpartaUILayer .icon-close');
+    $('#exampleModalTrigger').on('click', function (e) {
+        hamburgerFlyout.css({
+            'display': 'block',
+            'z-index': '1001'
+        }).attr('aria-hidden', 'false').addClass('spa-ui-layer-opened spa-ui-drawer-opened').removeClass('inactive');
+        hamburgerContent.css('transform', 'none');
+        $('body').addClass('spa-ui-freeze-scroll').css('top', '0px');
+    });
+    hamburgerClose.on('click', function () {
+        hamburgerFlyout.attr('aria-hidden', 'true').removeClass('spa-ui-layer-opened spa-ui-drawer-opened').css('z-index', '-1').addClass('inactive');
+        hamburgerContent.css('transform', 'translateX(-100%)');
+        $('body').removeClass('spa-ui-freeze-scroll').css('top', 'auto');
+    });
+
+    var getAppModal = $('#getTheAppModalSpartaUILayer');
+    var getAppContent = $('#getTheAppModalSpartaUILayer .spa-dialog');
+    var getAppClose = $('#getTheAppModalSpartaUILayer .icon-close');
+    $('#login_id').on('click', function (e) {
+        getAppModal.css({
+            'display': 'block',
+            'z-index': '1001',
+            'border-radius': '0'
+        }).attr('aria-hidden', 'false').addClass('spa-ui-layer-opened spa-ui-drawer-opened').removeClass('inactive');
+        getAppContent.css({
+            'margin': 'auto',
+            'transform': 'translate(-50%,0%)',
+            'width': '320px'
+        });
+        $('body').css({
+            'overflow': 'hidden',
+            'top': '0px'
+        });
+    });
+    getAppClose.on('click', function () {
+        getAppModal.attr('aria-hidden', 'true').removeClass('spa-ui-layer-opened spa-ui-drawer-opened').css('z-index', '-1').addClass('inactive');
+        $('body').css({
+            'overflow': 'scroll',
+            'top': 'auto'
+        }).removeClass('spa-ui-freeze-scroll');
+    });
+}

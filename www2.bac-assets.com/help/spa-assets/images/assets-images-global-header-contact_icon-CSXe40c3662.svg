@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 16.0.5, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [
+	<!ENTITY ns_extend "http://ns.adobe.com/Extensibility/1.0/">
+	<!ENTITY ns_ai "http://ns.adobe.com/AdobeIllustrator/10.0/">
+	<!ENTITY ns_graphs "http://ns.adobe.com/Graphs/1.0/">
+	<!ENTITY ns_vars "http://ns.adobe.com/Variables/1.0/">
+	<!ENTITY ns_imrep "http://ns.adobe.com/ImageReplacement/1.0/">
+	<!ENTITY ns_sfw "http://ns.adobe.com/SaveForWeb/1.0/">
+	<!ENTITY ns_custom "http://ns.adobe.com/GenericCustomNamespace/1.0/">
+	<!ENTITY ns_adobe_xpath "http://ns.adobe.com/XPath/1.0/">
+]>
+<svg version="1.1" id="Layer_1" xmlns:x="&ns_extend;" xmlns:i="&ns_ai;" xmlns:graph="&ns_graphs;"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="12.236px"
+	 height="14.165px" viewBox="0 0 12.236 14.165" enable-background="new 0 0 12.236 14.165" xml:space="preserve">
+<switch>
+	<foreignObject requiredExtensions="&ns_ai;" x="0" y="0" width="1" height="1">
+		<i:pgfRef  xlink:href="#adobe_illustrator_pgf">
+		</i:pgfRef>
+	</foreignObject>
+	<g i:extraneous="self">
+		<g>
+			<g>
+				<g>
+					<path fill="#867464" d="M7.114,9.485l0,1.457H0.771V1.314h6.344v1.646l0.771-0.771V1.143c0-0.629-0.515-1.146-1.145-1.143
+						H1.144C0.515,0,0,0.514,0,1.145v11.877c0,0.63,0.515,1.144,1.145,1.144h5.598c0.628,0,1.145-0.514,1.145-1.144v-2.765
+						L7.114,9.485z"/>
+				</g>
+			</g>
+			<g>
+				<path fill="#867464" d="M9.906,11.854L8.951,10.9c2.58-2.578,2.58-6.777,0-9.356L9.906,0.59
+					C13.013,3.694,13.013,8.749,9.906,11.854z"/>
+				<path fill="#867464" d="M8.188,10.136L7.233,9.182c1.632-1.632,1.632-4.287,0-5.918l0.955-0.956
+					C10.346,4.467,10.346,7.979,8.188,10.136z"/>
+				<path fill="#867464" d="M6.539,3.731L5.611,4.659c0.325,0.323,0.526,0.773,0.526,1.268c0,0.497-0.201,0.946-0.526,1.271
+					l0.927,0.927C7.749,6.912,7.749,4.943,6.539,3.731z"/>
+			</g>
+		</g>
+	</g>
+</switch>
+</svg>

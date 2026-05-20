@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="141px" height="141px" viewBox="0 0 141 141" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>illustration-custom-alerts</title>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#ECF6FD" offset="0%"></stop>
+            <stop stop-color="#CDEAFF" offset="100%"></stop>
+        </linearGradient>
+        <circle id="path-2" cx="70.5" cy="70.5" r="70.5"></circle>
+        <polyline id="path-4" points="58.0134082 109.014195 0 109.01233 0.00248832402 0 58.0158966 0.00248757391 58.0134082 109.014195"></polyline>
+        <linearGradient x1="41.0392257%" y1="29.1892478%" x2="58.638136%" y2="70.0616678%" id="linearGradient-6">
+            <stop stop-color="#ECEDED" offset="0%"></stop>
+            <stop stop-color="#F9F9F9" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="illustration-custom-alerts">
+            <mask id="mask-3" fill="white">
+                <use xlink:href="#path-2"></use>
+            </mask>
+            <use id="Mask" fill="url(#linearGradient-1)" xlink:href="#path-2"></use>
+            <g id="phone" mask="url(#mask-3)">
+                <g transform="translate(38, 30)">
+                    <g id="Phone">
+                        <path d="M7.08923513,132 L57.9076545,132 C61.8068582,132 64.9968896,128.519884 64.9968896,124.264889 L65,7.73759864 C65,3.48260347 61.8099686,0.00186568043 57.9107649,0.00186568043 L7.09234553,0 C3.19376388,0 0.00311040502,3.48073779 0.00311040502,7.73511107 L0,124.263023 C0,128.518018 3.19003139,132 7.08923513,132" id="phone" fill-opacity="0.85" fill="#000000"></path>
+                        <g id="bg" transform="translate(3.4712, 9.4745)">
+                            <mask id="mask-5" fill="white">
+                                <use xlink:href="#path-4"></use>
+                            </mask>
+                            <g id="Clip-10"></g>
+                            <polygon id="Fill-9" fill="url(#linearGradient-6)" mask="url(#mask-5)" points="0 109.01233 0.00248832402 0 58.0158966 0.00248757391 58.0134082 109.014195"></polygon>
+                        </g>
+                        <path d="M27.7323712,6.13808862 L36.9130426,6.13871051 C37.3273486,6.13871051 37.6626503,5.80350993 37.6626503,5.38932887 C37.6626503,4.97576971 37.3273486,4.64056913 36.9130426,4.64056913 L27.7323712,4.64056913 C27.3186873,4.64056913 26.9827636,4.97576971 26.9827636,5.38932887 C26.9827636,5.80288804 27.3186873,6.13808862 27.7323712,6.13808862" id="Fill-12" fill="#E6E7E8"></path>
+                    </g>
+                    <g id="Group-6" transform="translate(10, 55)">
+                        <path d="M53.9962341,33.4090909 L6.00376593,33.4090909 C2.70181537,33.4090909 0,30.7548051 0,27.5104673 L0,5.89814932 C0,2.65428577 2.70181537,0 6.00376593,0 L53.9962341,0 C57.2981846,0 60,2.65428577 60,5.89814932 L60,27.5104673 C60,30.7548051 57.2981846,33.4090909 53.9962341,33.4090909" id="Fill-10" fill="#E31837"></path>
+                        <path d="M10.6451613,33.0887651 L10.6451613,42 L21.2903226,31.5 C21.2903226,31.5 11.1926435,33.0887651 10.6451613,33.0887651" id="Fill-11" fill="#E31837"></path>
+                    </g>
+                    <g id="Group-7" transform="translate(8, 19)">
+                        <path d="M4.10315045,23.75 L36.8974796,23.75 C39.1538343,23.75 41,21.86373 41,19.5575734 L41,4.19242658 C41,1.88626996 39.1538343,0 36.8974796,0 L4.10315045,0 C1.84679576,0 0,1.88626996 0,4.19242658 L0,19.5575734 C0,21.86373 1.84679576,23.75 4.10315045,23.75" id="Fill-12" fill="#0052C2"></path>
+                        <path d="M33.5454545,23.6338965 L33.5454545,30 L26.0909091,22.5 C26.0909091,22.5 33.1623502,23.6338965 33.5454545,23.6338965" id="Fill-13" fill="#0052C2"></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

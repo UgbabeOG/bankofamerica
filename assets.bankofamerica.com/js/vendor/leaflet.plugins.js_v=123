@@ -1,0 +1,96 @@
+
+L.DivIcon.DataMarkup = LeafletL.DivIcon.extend({
+    _setIconStyles: function(img, name) {
+        LeafletL.DivIcon.prototype._setIconStyles.call(this, img, name);
+
+        if (this.options.lid) {
+            img.dataset.lid = this.options.lid;
+        }
+        
+        if (this.options.visible) {
+            img.dataset.visible = this.options.visible;
+        }
+        
+        if (this.options.lat) {
+            img.dataset.lat = this.options.lat;
+        }
+        
+        if (this.options.lng) {
+            img.dataset.lng = this.options.lng;
+        }
+        
+        if (this.options.specialties) {
+            /* OLD FILTERS COMPATIBILITY */
+            var particleGroupNames = [];
+            var particleNames = [];
+            
+            for (var i = 0; i < this.options.specialties.length; i++) {
+                var specialty = this.options.specialties[i];
+                for (var j = 0; j < particleGroupNames.length; j++) {
+                    if (specialty.group == particleGroupNames[j]) {
+                        particleNames.push(specialty.name);   
+                    }
+                }
+            }
+            var particlesCSV = makeCSV(particleNames); 
+            img.dataset.particles = particlesCSV;
+            /* END */
+            
+            var groups = [];
+            var specialtyGroups = {};
+            var SpecialtyObject = function() {
+                this.names = [];
+                this.spids = [];
+            }
+            
+            for (var i = 0; i < this.options.specialties.length; i++) {
+                specs = this.options.specialties[i];
+            
+                var camelCaseGroupName = makeCamelCase(specs.group);
+                
+                if (groups.indexOf(specs.group) == -1) {
+                    groups.push(specs.group);
+                    specialtyGroups[camelCaseGroupName] = new SpecialtyObject();
+                }
+               
+                specialtyGroups[camelCaseGroupName].names.push(specs.name);
+                specialtyGroups[camelCaseGroupName].spids.push(specs.spid);
+        
+            }
+            for (var key in specialtyGroups) {
+                if (specialtyGroups.hasOwnProperty(key)) {
+                    img.dataset[key + 'Spid'] = makeCSV(specialtyGroups[key].spids); 
+                    img.dataset[key + 'Name'] = makeCSV(specialtyGroups[key].names);
+
+                }
+            }
+            
+            function makeCSV(arr) {
+                var csv = arr[0];
+                for (var i = 1; i < arr.length; i++) {
+                    csv = csv + ", " + arr[i];
+                }
+                return csv;
+            }
+            
+            function makeSet(arr){
+                var set = [];
+                for (var i = 0; i < arr.length; i++) {
+                    if (set.indexOf(arr[i]) == -1) {
+                        set.push(arr[i]);
+                    }
+                }
+                return set;
+            }
+
+            function makeCamelCase(name) {
+                name = name.replace(/ /g, '');
+                name = name.replace(/(^.)/, name.charAt(0).toLowerCase());
+                return name;
+            }
+        }
+    }
+});
+L.DivIcon.dataMarkup = function(options) {
+    return new LeafletL.DivIcon.DataMarkup(options);
+}

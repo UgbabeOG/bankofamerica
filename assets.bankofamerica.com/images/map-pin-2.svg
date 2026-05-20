@@ -1,0 +1,11 @@
+<svg viewBox="0 0 32 45" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs>
+        <linearGradient id="Gradient1" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#dc1431"/>
+            <stop offset="50%" stop-color="#dc1431"/>
+        </linearGradient>
+    </defs>
+    <g id="Group" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M0.0356129032,16.1785806 C0.0356129032,26.6498065 15.008,44.0067097 15.008,44.0067097 C15.828129,45.12 16.1713548,45.12 16.9914839,44.0067097 C16.9909677,44.0077419 31.9643871,26.6492903 31.9643871,16.1785806 C31.963871,7.36309677 24.8165161,0.215225806 15.9994839,0.215225806 C7.18245161,0.215225806 0.0356129032,7.36258065 0.0356129032,16.1785806 Z" id="Shape" fill="url(#Gradient1)"></path>
+    </g>
+</svg>

@@ -1,0 +1,18 @@
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>58334274-2E03-42A5-BD0E-51CAD5EB52A2</title>
+    <g id="Tokens" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="design-tokens---iconography" transform="translate(-480.000000, -3947.000000)">
+            <rect fill="#FFFFFF" x="0" y="0" width="1600" height="6270"></rect>
+            <g id="control-icons" transform="translate(0.000000, 2770.000000)">
+                <g id="icons" transform="translate(43.000000, 673.000000)">
+                    <g id="Group-6" transform="translate(0.000000, 229.000000)">
+                        <g id="web/icon/control/flag-active" transform="translate(437.000000, 275.000000)">
+                            <rect id="bounding-box" fill-opacity="0" fill="#FFFFFF" x="0" y="0" width="24" height="24"></rect>
+                            <path d="M4.90909091,2 C5.37530531,2 5.75955196,2.35094563 5.8120657,2.8030717 L5.81818182,2.90909091 L5.818,3.961 L20.3262869,3.96178089 L15.579785,8.96090909 L20.3262869,13.9617809 L5.818,13.961 L5.81818182,21.0909091 C5.81818182,21.5929861 5.41116795,22 4.90909091,22 C4.44287651,22 4.05862985,21.6490544 4.00611612,21.1969283 L4,21.0909091 L4,2.90909091 C4,2.40701386 4.40701386,2 4.90909091,2 Z" id="icon" fill="#646464"></path>
+                        </g>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

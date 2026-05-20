@@ -1,0 +1,79 @@
+{
+  "global": {
+    "globalTestA": {
+      "runDates": {
+        "start": "Aug 10 2017 00:00:00",
+        "end": "Aug 17 2017 00:00:00"
+      },
+      "experiences": [
+        {
+          "name": "a",
+          "weight": 0.33
+        },
+        {
+          "name": "b",
+          "weight": 0.33
+        },
+        {
+          "name": "c",
+          "weight": 0.20
+        }
+      ]
+    }
+  },
+  "site": {
+    "docsSiteTestA": {
+      "name": "sparta-docs",
+      "runDates": {
+        "start": "Aug 10 2017 00:00:00",
+        "end": "Aug 17 2017 00:00:00"
+      },
+      "experiences": [
+        {
+          "name": "a",
+          "weight": 0.5
+        },
+        {
+          "name": "b",
+          "weight": 0.5
+        }
+      ]
+    },
+    "demoSiteTestA": {
+      "name": "sparta-demo",
+      "runDates": {
+        "start": "Aug 10 2017 00:00:00",
+        "end": "Aug 17 2017 00:00:00"
+      },
+      "experiences": [
+        {
+          "name": "a",
+          "weight": 0.5
+        },
+        {
+          "name": "b",
+          "weight": 0.5
+        }
+      ]
+    }
+  },
+  "page": {
+    "demoSiteExperienceDemoTestA": {
+      "path": "/sparta-demo/experience-demo/",
+      "runDates": {
+        "start": "Aug 10 2017 00:00:00",
+        "end": "Aug 17 2017 00:00:00"
+      },
+      "experiences": [
+        {
+          "name": "a",
+          "weight": 0.5
+        },
+        {
+          "name": "b",
+          "weight": 0.5
+        }
+      ]
+    }
+  }
+}

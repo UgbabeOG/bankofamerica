@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="34" height="34" viewBox="0 0 34 34">
+  <defs>
+    <rect id="rect-1" width="34" height="2.024" x="0" y="15.988"/>
+    <mask id="mask-2" maskContentUnits="userSpaceOnUse" maskUnits="userSpaceOnUse">
+      <rect width="34" height="34" x="0" y="0" fill="black"/>
+      <use fill="white" xlink:href="#rect-1"/>
+    </mask>
+    <rect id="rect-6" width="34" height="2.024" x="0" y="15.988"/>
+    <mask id="mask-7" maskContentUnits="userSpaceOnUse" maskUnits="userSpaceOnUse">
+      <rect width="34" height="34" x="0" y="0" fill="black"/>
+      <use fill="white" xlink:href="#rect-6"/>
+    </mask>
+  </defs>
+  <g>
+    <g>
+      <use fill="none" xlink:href="#rect-1"/>
+      <g mask="url(#mask-2)">
+        <g opacity="0">
+          <rect width="40.476" height="38.549" x="-3.238" y="-2.226" fill="rgb(255,255,255)" rx="0" ry="0"/>
+        </g>
+        <path fill="rgb(0,0,0)" fill-rule="evenodd" d="M.13492063 16.24508691v1.60619805h33.73015875V16.2450869H.13492063z"/>
+        <path fill="rgb(0,0,0)" fill-rule="evenodd" d="M.13492063 16.24508691v1.60619805h33.73015875V16.2450869H.13492063z"/>
+      </g>
+    </g>
+    <g transform="rotate(90.000032 17 17)">
+      <use fill="none" xlink:href="#rect-6"/>
+      <g mask="url(#mask-7)">
+        <g opacity="0">
+          <rect width="40.476" height="38.549" x="-3.238" y="-2.226" fill="rgb(255,255,255)" rx="0" ry="0"/>
+        </g>
+        <path fill="rgb(0,0,0)" fill-rule="evenodd" d="M.13492063 16.24508691v1.60619805h33.73015875V16.2450869H.13492063z"/>
+        <path fill="rgb(0,0,0)" fill-rule="evenodd" d="M.13492063 16.24508691v1.60619805h33.73015875V16.2450869H.13492063z"/>
+      </g>
+    </g>
+  </g>
+</svg>
