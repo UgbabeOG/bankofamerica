@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bank of America | Online Banking Dashboard</title>
+  <style>
+    :root {
+      --primary: #002663;
+      --secondary: #dc3545;
+      --bg: #f0f2f5;
+      --text: #1a1a1a;
+      --text-light: #65676b;
+      --white: #ffffff;
+      --border: #dddfe2;
+      --success: #28a745;
+      --danger: #dc3545;
+    }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+    
+    /* Sidebar */
+    .sidebar { width: 260px; background: var(--primary); color: var(--white); display: flex; flex-direction: column; position: fixed; height: 100vh; }
+    .sidebar-header { padding: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-logo { font-size: 1.5rem; font-weight: bold; letter-spacing: 1px; }
+    .sidebar-nav { flex: 1; padding: 1.5rem 0; }
+    .nav-item { padding: 0.75rem 2rem; display: flex; align-items: center; gap: 1rem; color: rgba(255,255,255,0.7); text-decoration: none; transition: 0.2s; }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: var(--white); }
+    .sidebar-footer { padding: 1.5rem 2rem; border-top: 1px solid rgba(255,255,255,0.1); }
+
+    /* Main Content */
+    .main-content { margin-left: 260px; flex: 1; display: flex; flex-direction: column; }
+    .header { background: var(--white); padding: 1rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .user-profile { display: flex; align-items: center; gap: 0.75rem; }
+    .avatar { width: 40px; height: 40px; background: #e4e6eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-light); }
+
+    .content-area { padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .welcome-section { margin-bottom: 2rem; }
+    .welcome-section h1 { margin: 0; font-size: 1.75rem; color: var(--primary); }
+    .welcome-section p { margin: 0.5rem 0 0; color: var(--text-light); }
+
+    /* Account Cards */
+    .accounts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .account-card { background: var(--white); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .account-type { font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem; }
+    .account-number { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+    .balance { font-size: 2rem; font-weight: bold; color: var(--primary); margin-bottom: 0.5rem; }
+    .balance-label { font-size: 0.85rem; color: var(--text-light); }
+    .account-actions { margin-top: 1.5rem; display: flex; gap: 1rem; }
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; font-weight: 600; border-radius: 6px; text-decoration: none; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text); transition: 0.2s; }
+    .btn-sm:hover { background: #e4e6eb; }
+
+    /* Transactions */
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+    .section-header h2 { margin: 0; font-size: 1.25rem; }
+    .transactions-card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 1rem 1.5rem; background: #f8f9fa; border-bottom: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; color: var(--text-light); }
+    td { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    .amount { font-weight: 600; }
+    .amount.credit { color: var(--success); }
+    .amount.debit { color: var(--danger); }
+    .status-badge { padding: 0.25rem 0.6rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    .status-badge.success { background: #d4edda; color: #155724; }
+    .status-badge.failed { background: #f8d7da; color: #721c24; }
+
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+    .action-card { background: var(--white); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); text-align: center; cursor: pointer; transition: 0.2s; text-decoration: none; color: inherit; }
+    .action-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: var(--primary); }
+    .action-icon { font-size: 1.5rem; margin-bottom: 0.75rem; color: var(--secondary); }
+    .action-label { font-size: 0.9rem; font-weight: 600; }
+
+    .footer { padding: 2rem; text-align: center; color: var(--text-light); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">BANK OF AMERICA</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item active">
+        <span>Dashboard</span>
+      </a>
+      <a href="payments.html" class="nav-item">
+        <span>Transfer & Pay</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span>Statements</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span>Planning</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span>Security</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="index.html" class="nav-item" style="padding-left: 0;">
+        <span>Log Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="header">
+      <div class="search-bar">
+        <!-- Mock search -->
+      </div>
+      <div class="user-profile">
+        <span>林连花</span>
+        <div class="avatar">林</div>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div class="welcome-section">
+        <h1>Hello, 林连花</h1>
+        <p>Last login: May 20, 2026 at 10:24 AM</p>
+      </div>
+
+      <div class="quick-actions">
+        <a href="payments.html" class="action-card">
+          <div class="action-icon">⇄</div>
+          <div class="action-label">Transfer</div>
+        </a>
+        <div class="action-card">
+          <div class="action-icon">📄</div>
+          <div class="action-label">Bill Pay</div>
+        </div>
+        <div class="action-card">
+          <div class="action-icon">💳</div>
+          <div class="action-label">Cards</div>
+        </div>
+        <div class="action-card">
+          <div class="action-icon">🎯</div>
+          <div class="action-label">Life Plan</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>Your Accounts</h2>
+      </div>
+      <div class="accounts-grid">
+        <div class="account-card">
+          <div class="account-type">Checking</div>
+          <div class="account-number">Advantage SafeBalance (...8471)</div>
+          <div class="balance">$6,580.00</div>
+          <div class="balance-label">Available Balance</div>
+          <div class="account-actions">
+            <a href="#" class="btn-sm">Details</a>
+            <a href="payments.html" class="btn-sm">Transfer</a>
+          </div>
+        </div>
+        <div class="account-card">
+          <div class="account-type">Savings</div>
+          <div class="account-number">Advantage Savings (...3851)</div>
+          <div class="balance">$12,450.25</div>
+          <div class="balance-label">Total Balance</div>
+          <div class="account-actions">
+            <a href="#" class="btn-sm">Details</a>
+          </div>
+        </div>
+        <div class="account-card">
+          <div class="account-type">Credit Card</div>
+          <div class="account-number">Travel Rewards (...7148)</div>
+          <div class="balance">$1,240.00</div>
+          <div class="balance-label">Current Balance</div>
+          <div class="account-actions">
+            <a href="#" class="btn-sm">Pay Bill</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>Recent Transactions</h2>
+        <a href="#" class="btn-sm">View All</a>
+      </div>
+      <div class="transactions-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Recipient / Bank</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>May 19, 2026</td>
+                <td>Property Acquisition</td>
+                <td>林连花 / 中国农业银行</td>
+                <td class="amount debit">-$14,000.00</td>
+                <td><span class="status-badge success">Completed</span></td>
+              </tr>
+              <tr>
+                <td>May 18, 2026</td>
+                <td>Asset Transfer</td>
+                <td>梁利利 / 平安银行</td>
+                <td class="amount debit">-$14,000.00</td>
+                <td class="status-badge success">Completed</span></td>
+              </tr>
+              <tr>
+                <td>May 17, 2026</td>
+                <td>Real Estate Payment</td>
+                <td>林连花 / 浦发银行</td>
+                <td class="amount debit">-$14,000.00</td>
+                <td><span class="status-badge failed">Failed</span></td>
+              </tr>
+              <tr>
+                <td>May 15, 2026</td>
+                <td>Monthly Salary</td>
+                <td>Employer Inc.</td>
+                <td class="amount credit">+$8,200.00</td>
+                <td><span class="status-badge success">Completed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="footer">
+        &copy; 2026 Bank of America Corporation. All rights reserved. Member FDIC.
+      </div>
+    </div>
+  </main>
+</body>
+</html>

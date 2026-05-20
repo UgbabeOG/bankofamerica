@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bank of America | Online Banking | Log In</title>
+  <style>
+    :root {
+      --primary: #002663;
+      --secondary: #dc3545;
+      --bg: #f0f2f5;
+      --white: #ffffff;
+      --text: #1a1a1a;
+      --text-light: #65676b;
+      --border: #dddfe2;
+    }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+    
+    .header { background: var(--white); border-bottom: 1px solid var(--border); padding: 1.5rem; text-align: center; }
+    .header-logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); letter-spacing: 1px; }
+    
+    .main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .login-card { max-width: 420px; width: 100%; background: var(--white); padding: 2.5rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); border: 1px solid var(--border); }
+    .login-card h2 { margin-top: 0; color: var(--primary); font-size: 1.75rem; margin-bottom: 1.5rem; }
+    
+    .mock-info { background: #e7f3ff; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; font-size: 0.9rem; color: #0056b3; line-height: 1.5; border-left: 4px solid #0056b3; }
+    
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; color: var(--text-light); }
+    .form-group input { width: 100%; padding: 0.85rem; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size: 1rem; transition: 0.2s; }
+    .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,38,99,0.1); }
+    
+    .btn-login { width: 100%; padding: 1rem; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 1rem; }
+    .btn-login:hover { background: #001a4d; }
+    
+    .login-links { margin-top: 1.5rem; text-align: center; font-size: 0.9rem; }
+    .login-links a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    
+    .footer { text-align: center; padding: 2rem; font-size: 0.85rem; color: var(--text-light); }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-logo">BANK OF AMERICA</div>
+  </header>
+
+  <main class="main">
+    <div class="login-card">
+      <h2>Log In</h2>
+      
+      <div class="mock-info">
+        <strong>Demo Mode</strong><br>
+        Use these credentials to access the dashboard:<br>
+        ID: <code>mockuser</code> / Passcode: <code>password123</code>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="onlineId">Online ID</label>
+          <input type="text" id="onlineId" name="onlineId" placeholder="Enter Online ID" required>
+        </div>
+        <div class="form-group">
+          <label for="passcode">Passcode</label>
+          <input type="password" id="passcode" name="passcode" placeholder="Enter Passcode" required>
+        </div>
+        <button type="submit" class="btn-login">Log In</button>
+      </form>
+
+      <div class="login-links">
+        <a href="#">Forgot ID/Passcode?</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    &copy; 2026 Bank of America Corporation. All rights reserved. <br>
+    Member FDIC. Equal Housing Lender.
+  </footer>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Mock login - just redirect to dashboard
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+</body>
+</html>

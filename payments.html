@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bank of America | Transfer & Pay</title>
+  <style>
+    :root {
+      --primary: #002663;
+      --secondary: #dc3545;
+      --bg: #f5f7fb;
+      --white: #ffffff;
+      --text: #102a43;
+      --text-light: #486581;
+      --border: #d9e2ec;
+    }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); }
+    .page { max-width: 800px; margin: 0 auto; padding: 2rem; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .brand { display: flex; align-items: center; gap: 0.75rem; }
+    .brand-logo { width: 44px; height: 44px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.1rem; }
+    
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 12px 28px rgba(16, 42, 67, 0.08); padding: 2.5rem; }
+    h2 { margin-top: 0; color: var(--primary); font-size: 1.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--bg); padding-bottom: 1rem; }
+    
+    .form-section { margin-bottom: 2rem; }
+    .section-title { font-size: 0.9rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.5px; }
+
+    .form-group { margin-bottom: 1.5rem; }
+    label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text); font-size: 0.95rem; }
+    input, select { width: 100%; padding: 0.85rem; border: 1px solid var(--border); border-radius: 10px; box-sizing: border-box; font-size: 1rem; transition: border-color 0.2s; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); background: #fcfdfe; }
+    
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-submit { width: 100%; padding: 1rem; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.2s; margin-top: 1rem; }
+    .btn-submit:hover { background: #001a4d; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,38,99,0.2); }
+    .btn-back { text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.95rem; }
+    
+    /* Security Message */
+    .security-msg { background: #fff8e6; border: 1px solid #ffeeba; padding: 1rem; border-radius: 10px; font-size: 0.85rem; color: #856404; display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+    
+    /* Modals */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-content { background: #fff; padding: 3rem; border-radius: 24px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+    .modal-icon { font-size: 4.5rem; margin-bottom: 1.5rem; }
+    .success-icon { color: #28a745; }
+    .error-icon { color: #dc3545; }
+    .modal-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 0.75rem; color: var(--primary); }
+    .modal-text { color: var(--text-light); margin-bottom: 2rem; line-height: 1.5; }
+    .btn-modal { padding: 1rem 2.5rem; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+    .btn-success { background: #28a745; color: #fff; }
+    .btn-error { background: #dc3545; color: #fff; }
+
+    .loading-overlay { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); align-items: center; justify-content: center; flex-direction: column; }
+    .spinner { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 1.5rem; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="brand">
+        <div class="brand-logo">BOA</div>
+        <strong style="font-size: 1.25rem;">Transfer & Pay</strong>
+      </div>
+      <a href="dashboard.html" class="btn-back">← Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+      <h2>Domestic Bank Transfer</h2>
+      
+      <div class="security-msg">
+        <div style="font-size: 1.25rem;">🔒</div>
+        <div>Transactions are secured with end-to-end encryption. Please verify all recipient details carefully before proceeding.</div>
+      </div>
+
+      <form id="paymentForm">
+        <div class="form-section">
+          <div class="section-title">Source Account</div>
+          <div class="form-group">
+            <label for="fromAccount">Select Account</label>
+            <select id="fromAccount">
+              <option value="checking">Advantage SafeBalance (...8471) - $6,580.00</option>
+              <option value="savings">Advantage Savings (...3851) - $12,450.25</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">Recipient Information</div>
+          <div class="form-group">
+            <label for="bankName">Recipient Bank Name</label>
+            <input type="text" id="bankName" placeholder="e.g. JPMorgan Chase, Wells Fargo" required>
+          </div>
+          <div class="form-group">
+            <label for="accountNumber">Bank Account Number</label>
+            <input type="text" id="accountNumber" placeholder="Enter account number" required>
+          </div>
+          <div class="form-group">
+            <label for="recipientName">Recipient Name</label>
+            <input type="text" id="recipientName" placeholder="Full name of recipient" required>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-title">Transaction Details</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="amount">Amount ($)</label>
+              <input type="number" id="amount" placeholder="0.00" min="1.00" step="0.01" required>
+            </div>
+            <div class="form-group">
+              <label for="transactionPin">Transaction PIN</label>
+              <input type="password" id="transactionPin" maxlength="6" placeholder="6-digit PIN" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="memo">Note (Optional)</label>
+            <input type="text" id="memo" placeholder="Reference for this payment">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">Confirm and Transfer</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p style="font-weight: 600; color: var(--primary);">Processing your secure transfer...</p>
+    <p style="font-size: 0.85rem; color: var(--text-light);">Do not refresh or close this window.</p>
+  </div>
+
+  <div id="statusModal" class="modal">
+    <div class="modal-content">
+      <div id="modalIcon" class="modal-icon"></div>
+      <div id="modalTitle" class="modal-title"></div>
+      <p id="modalText" class="modal-text"></p>
+      <button id="modalBtn" class="btn-modal"></button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('paymentForm');
+    const loading = document.getElementById('loadingOverlay');
+    const modal = document.getElementById('statusModal');
+    const modalIcon = document.getElementById('modalIcon');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalText = document.getElementById('modalText');
+    const modalBtn = document.getElementById('modalBtn');
+
+    // Initialize transaction counter if not exists
+    if (!sessionStorage.getItem('transactionCount')) {
+      sessionStorage.setItem('transactionCount', '0');
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      loading.style.display = 'flex';
+      
+      let count = parseInt(sessionStorage.getItem('transactionCount'));
+      count++;
+      sessionStorage.setItem('transactionCount', count.toString());
+
+      // Simulate network delay
+      setTimeout(() => {
+        loading.style.display = 'none';
+        modal.style.display = 'flex';
+
+        if (count < 3) {
+          // Success for first two
+          modalIcon.innerHTML = '✓';
+          modalIcon.className = 'modal-icon success-icon';
+          modalTitle.innerText = 'Success!';
+          modalText.innerText = 'Your transfer of $' + parseFloat(document.getElementById('amount').value).toLocaleString() + ' to ' + document.getElementById('recipientName').value + ' at ' + document.getElementById('bankName').value + ' has been initiated successfully.';
+          modalBtn.innerText = 'Back to Dashboard';
+          modalBtn.className = 'btn-modal btn-success';
+          modalBtn.onclick = () => { window.location.href = 'dashboard.html'; };
+        } else {
+          // Failure for the 3rd one
+          modalIcon.innerHTML = '⚠';
+          modalIcon.className = 'modal-icon error-icon';
+          modalTitle.innerText = 'Transaction Declined';
+          modalText.innerText = 'We were unable to process this transfer due to a temporary authorization mismatch with the recipient bank. Please verify the account number and try again in 24 hours.';
+          modalBtn.innerText = 'Try Again';
+          modalBtn.className = 'btn-modal btn-error';
+          modalBtn.onclick = () => { modal.style.display = 'none'; };
+        }
+      }, 2500);
+    });
+  </script>
+</body>
+</html>
